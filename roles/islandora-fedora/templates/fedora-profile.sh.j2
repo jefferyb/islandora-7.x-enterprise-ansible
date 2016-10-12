@@ -1,0 +1,11 @@
+PATH=/opt/java/bin:$PATH:$HOME/bin
+export FEDORA_HOME={{ FEDORA_HOME }}
+export CATALINA_HOME={{ TOMCAT_HOME }}
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CATALINA_HOME/lib
+export LD_LIBRARY_PATH
+export JAVA_OPTS="-Xms1024m -Xmx1024m -Djavax.net.ssl.trustStore={{ FEDORA_HOME }}/server/truststore -Djavax.net.ssl.trustStorePassword=tomcat"
+export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+export JRE_HOME=/usr/lib/jvm/java-8-oracle/jre
+export J2SDKDIR=/usr/lib/jvm/java-8-oracle
+export J2REDIR=/usr/lib/jvm/java-8-oracle/jre
+export KAKADU_LIBRARY_PATH={{ DJATOKA_HOME }}/lib/Linux-x86-64

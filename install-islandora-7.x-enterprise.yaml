@@ -1,0 +1,19 @@
+---
+# Setup up a minimum enterprise stack
+# For more information, visit: 
+#   https://wiki.duraspace.org/display/ISLANDORA/Enterprise
+#
+# This playbook assumes Ubuntu 14.04 or 16.04 but recommanded to use Ubuntu 14.04
+#
+# Last updated: 12 October 2016
+#
+- hosts: localhost
+  # user: root
+  # become: true
+  roles:
+    - islandora-mysql
+    - islandora-tomcat
+    - islandora-fedora
+    - islandora-drupal
+    - islandora-gsearch
+    - islandora-solr

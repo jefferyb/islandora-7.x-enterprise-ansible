@@ -1,0 +1,60 @@
+---
+# milestone 1 - Installing Java
+- name: Add Java Repo
+  apt_repository: 
+    repo: 'ppa:webupd8team/java'
+
+- name: Accept oracle license
+  debconf:
+    name: 'oracle-java7-installer'
+    question: 'shared/accepted-oracle-license-v1-1'
+    value: 'true'
+    vtype: 'select'
+
+- name: Install Oracle Java 8 JDK
+  apt:
+    pkg: oracle-java8-set-default
+    state: present
+    update_cache: true
+  register: install_java
+
+- name: "Export {{ JAVA_HOME }}"
+  shell: "export JAVA_HOME={{ JAVA_HOME }}"
+
+- name: A workaround to get tomcat7 installed on Ubuntu 16.04
+  template:
+    src: etc_default_tomcat7.j2
+    dest: /etc/default/tomcat7
+  when: ansible_distribution_release == "xenial"
+
+- name: Set JAVA_HOME in /etc/environment
+  lineinfile:
+    dest: /etc/environment
+    regexp: "JAVA_HOME={{ JAVA_HOME }}"
+    line: "JAVA_HOME={{ JAVA_HOME }}"
+
+- name: Install tomcat 7
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items:
+    - tomcat7
+    - tomcat7-admin
+  register: install_tomcat
+
+- name: Set JAVA_HOME in /etc/default/tomcat7
+  replace:
+    dest: /etc/default/tomcat7
+    regexp: "#JAVA_HOME=/usr/lib/jvm/openjdk-6-jdk"
+    replace: "JAVA_HOME={{ JAVA_HOME }}"
+
+- name: Backup the init script in /etc/init.d/tomcat7
+  shell: cp -f /etc/init.d/tomcat7 /etc/init.d/tomcat7.original
+  when: install_tomcat.changed
+
+- name: Create the init script in /etc/init.d/tomcat7
+  template:
+    src: tomcat7.j2
+    dest: /etc/init.d/tomcat7
+    mode: "u=rwx,g=rx,o=rx"
+

@@ -1,0 +1,84 @@
+---
+# milestone 1 - Installing MySQL
+# --volume: /var/lib/mysql
+
+- name: Set MySQL root password before installing
+  debconf:
+    name: 'mysql-server'
+    question: 'mysql-server/root_password'
+    value: '{{ MYSQL_ROOT_PASSWORD | quote }}'
+    vtype: 'password'
+
+- name: Confirm MySQL root password before installing
+  debconf:
+    name: 'mysql-server'
+    question: 'mysql-server/root_password_again'
+    value: '{{ MYSQL_ROOT_PASSWORD | quote }}'
+    vtype: 'password'
+
+- name: Install MySQL
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 86400
+  with_items:
+    - mysql-server
+    - mysql-client
+    - python-mysqldb
+
+- name: Restart mysql server
+  service:
+    name: mysql
+    state: restarted
+- shell: service mysql restart
+  when: 
+    - ansible_virtualization_type == "docker"
+    - ansible_distribution_release == "trusty"
+
+
+- block:
+    - name: "Edit /etc/mysql/my.cnf for 4 byte UTF-8 support"
+      blockinfile:
+        dest: '/etc/mysql/my.cnf'
+        insertafter: 'skip-external-locking'
+        block: |
+          innodb_large_prefix=true
+          innodb_file_format=barracuda
+          innodb_file_per_table=true
+      register: edit_mysql_config
+
+    - name: Restart mysql server
+      service:
+        name: mysql
+        state: restarted
+      when: edit_mysql_config.changed
+    - shell: service mysql restart
+      when: ansible_virtualization_type == "docker"
+  when: 
+    - ansible_distribution_release == "trusty"
+
+- name: Create database 
+  mysql_db:
+    name: "{{ FEDORA_DATABASE_NAME }}" 
+    state: present
+    encoding: utf8
+    collation: utf8_bin
+    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+
+- name: Create Fedora database user
+  mysql_user: 
+    name: "{{ FEDORA_DATABASE_USER }}" 
+    password: "{{ FEDORA_DATABASE_PASSWORD }}"
+    priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
+    state: present
+    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+
+- name: Create fgsAdmin user
+  mysql_user: 
+    name: "{{ FGSADMIN_USER }}" 
+    password: "{{ FGSADMIN_PASSWORD }}"
+    priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
+    state: present
+    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+

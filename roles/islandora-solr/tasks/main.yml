@@ -1,0 +1,76 @@
+---
+# milestone 6 - Installing Solr
+- name: "Create {{ SOLR_HOME }} folder"
+  file: 
+    path: "{{ SOLR_HOME }}" 
+    state: directory
+    
+- name: "Download Solr"
+  get_url:
+    url: "http://archive.apache.org/dist/lucene/solr/{{ SOLR_VERSION }}/solr-{{ SOLR_VERSION }}.tgz"
+    dest: "/tmp/solr-{{ SOLR_VERSION }}.tgz"
+  register: download_solr
+
+- name: Deploy Solr
+  shell: "{{ item }}"
+  with_items:
+    - "tar -xzf /tmp/solr-{{ SOLR_VERSION }}.tgz -C {{ SOLR_HOME }} --strip-components=3 solr-{{ SOLR_VERSION }}/example/solr"
+    - "tar -xzf /tmp/solr-{{ SOLR_VERSION }}.tgz -C {{ TOMCAT_HOME }}/webapps --strip-components=2 solr-{{ SOLR_VERSION }}/dist/solr-{{ SOLR_VERSION }}.war"
+    - "mv {{ TOMCAT_HOME }}/webapps/solr-{{ SOLR_VERSION }}.war {{ TOMCAT_HOME }}/webapps/solr.war"
+  args:
+    executable: /bin/bash
+  when: download_solr.changed
+
+- name: Install ant
+  apt:
+    pkg: ant
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Run Apache ant on fgsconfig-basic.xml
+  shell: "{{ item }}"
+  with_items:
+    - ant -f fgsconfig-basic.xml
+    - "cp -f {{ SOLR_HOME }}/collection1/conf/schema.xml {{ SOLR_HOME }}/collection1/conf/schema.bkp"
+    - "cp -f {{ TOMCAT_HOME }}/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/conf/schema-4.2.0-for-fgs-2.6.xml {{ SOLR_HOME }}/collection1/conf/schema.xml"
+  args:
+    executable: /bin/bash
+    chdir: "{{ TOMCAT_HOME }}/webapps/fedoragsearch/FgsConfig"
+
+- name: Create a context file for Solr
+  template:
+    src: "solr.xml.j2"
+    dest: "{{ TOMCAT_HOME }}/conf/Catalina/localhost/solr.xml"
+    group: "{{ TOMCAT_USER }}"
+  register: solr_context
+
+- name: Configure directory to hold all solr index data
+  replace:
+    dest: "{{ SOLR_HOME }}/collection1/conf/solrconfig.xml"
+    regexp: '<dataDir>\${solr.data.dir:}<\/dataDir>'
+    replace: "<dataDir>{{ SOLR_HOME }}/collection1/data</dataDir>"
+
+- name: Set Permissions
+  file: 
+    path: "{{ item }}"
+    owner: "{{ TOMCAT_USER }}" 
+    group: "{{ TOMCAT_USER }}" 
+    recurse: yes
+  with_items:
+    - "{{ TOMCAT_HOME }}/webapps"
+
+- name: Kill tomcat 7
+  command: pkill java
+
+- name: Start tomcat
+  service:
+    name: "{{ TOMCAT_USER }}"
+    state: restarted
+
+- name: Wait for tomcat
+  wait_for:
+    path: "{{ TOMCAT_HOME }}/logs/catalina.out"
+    search_regex: "solr.xml has finished"
+
+

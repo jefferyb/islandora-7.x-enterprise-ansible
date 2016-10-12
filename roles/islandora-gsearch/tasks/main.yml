@@ -1,0 +1,56 @@
+---
+# milestone 6 - Installing GSearch
+- name: Download GSearch 2.8
+  get_url:
+    url: "https://sourceforge.net/projects/fedora-commons/files/services/3.7/fedoragsearch-2.8.zip/download"
+    dest: "/tmp/fedoragsearch-2.8.zip"
+  register: fedoragsearch
+
+- name: Unzip GSearch 2.8
+  unarchive:
+    src: "/tmp/fedoragsearch-2.8.zip"
+    dest: "/tmp"
+    remote_src: yes
+  when: fedoragsearch.changed
+
+- name: "Deploy GSearch 2.8 war file"
+  copy:
+    src: /tmp/fedoragsearch-2.8/fedoragsearch.war
+    dest: "{{ TOMCAT_HOME }}/webapps/fedoragsearch.war"
+    remote_src: True
+  when: fedoragsearch.changed
+
+- name: Set Permissions
+  file: 
+    path: "{{ item }}"
+    owner: "{{ TOMCAT_USER }}" 
+    group: "{{ TOMCAT_USER }}" 
+    recurse: yes
+  with_items:
+    - "{{ TOMCAT_HOME }}/webapps"
+
+# - name: Kill tomcat 7
+#   command: pkill java
+#   when: fedoragsearch.changed
+
+- name: Start tomcat
+  service:
+    name: "{{ TOMCAT_USER }}"
+    state: restarted
+  when: fedoragsearch.changed
+
+- name: Wait for tomcat
+  wait_for:
+    path: "{{ TOMCAT_HOME }}/webapps/fedoragsearch/FgsConfig/fgsconfig-basic-for-islandora.properties"
+  when: fedoragsearch.changed
+
+- name: Configure fgsconfig basic for islandora properties
+  template: 
+    src: fgsconfig-basic-for-islandora.properties.j2 
+    dest: "{{ TOMCAT_HOME }}/webapps/fedoragsearch/FgsConfig/fgsconfig-basic-for-islandora.properties"
+
+- name: Replace 'fgsconfig-basic.properties' with 'fgsconfig-basic-for-islandora.properties'
+  replace:
+    dest: "{{ TOMCAT_HOME }}/webapps/fedoragsearch/FgsConfig/fgsconfig-basic.xml"
+    regexp: "fgsconfig-basic.properties"
+    replace: "fgsconfig-basic-for-islandora.properties"
