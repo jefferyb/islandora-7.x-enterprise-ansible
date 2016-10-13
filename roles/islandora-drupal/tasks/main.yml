@@ -1,5 +1,8 @@
 ---
 # milestone 2 - Installing Drupal
+# --volume: {{ DRUPAL_HOME }}
+# --volume: {{ DRUPAL_HOME }}/sites
+ 
 - name: Set MySQL root password before installing
   debconf:
     name: 'mysql-server'
@@ -204,7 +207,6 @@
         line: "      'charset' => 'utf8mb4',"
   when: 
     - drupal_install.changed
-    # - ansible_distribution_release == "xenial"
 
 - name: "Enable proxy module"
   file:
@@ -326,13 +328,13 @@
     ### Enable Testing module to run some of the Islandora tests
     - drush -y en simpletest
     ### milestone 5 - Installing the Islandora Essential Modules
-    - drush -y -u 1 en islandora
-    - drush -y -u 1 en islandora_basic_collection 
-    - drush -y -u 1 en islandora_basic_image 
-    - drush -y -u 1 en islandora_pdf 
+    - drush -y en islandora
+    - drush -y en islandora_basic_collection
+    - drush -y en islandora_basic_image
+    - drush -y en islandora_pdf
     ### milestone 6 - Installing Solr and GSearch
-    - drush -y -u 1 en islandora_solr islandora_solr_metadata islandora_solr_facet_pages islandora_solr_views
-#    - drush -y -u 1 en xml_form_builder
+    - drush -y en islandora_solr islandora_solr_metadata islandora_solr_facet_pages islandora_solr_views
+    - drush -y en xml_form_builder
     ### drush_extras to configure blocks
     ### http://drupal.stackexchange.com/a/3661
     - drush dl drush_extras-7
@@ -387,11 +389,8 @@
     state: restarted
 
 - name: "Run Cron maintenance tasks"
-  shell: "{{ item }}"
-  with_items:
-    - drush -y -u 1 core-cron
-    - drush -y -u 1 core-cron
-  args:
-    executable: /bin/bash
-    chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
+  shell: "drush --root={{ DRUPAL_HOME }} -y -u 1 core-cron"
+  # args:
+  #   executable: /bin/bash
+  #   chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
   # when: ansible_distribution_release == "xenial"

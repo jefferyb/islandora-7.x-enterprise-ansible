@@ -1,5 +1,8 @@
 ---
 ### milestone 1 - Installing Fedora
+# --volume: {{ FEDORA_HOME }}
+# --volume: {{ FEDORA_HOME }}/data
+# --volume: {{ FEDORA_HOME }}/server/config
 - name: Install git
   apt:
     pkg: git

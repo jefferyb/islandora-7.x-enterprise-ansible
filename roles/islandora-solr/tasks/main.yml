@@ -1,5 +1,6 @@
 ---
 # milestone 6 - Installing Solr
+# --volume: {{ SOLR_HOME }}
 - name: "Create {{ SOLR_HOME }} folder"
   file: 
     path: "{{ SOLR_HOME }}" 
