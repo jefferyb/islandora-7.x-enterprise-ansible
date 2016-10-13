@@ -204,7 +204,7 @@
         line: "      'charset' => 'utf8mb4',"
   when: 
     - drupal_install.changed
-    - ansible_distribution_release == "xenial"
+    # - ansible_distribution_release == "xenial"
 
 - name: "Enable proxy module"
   file:
