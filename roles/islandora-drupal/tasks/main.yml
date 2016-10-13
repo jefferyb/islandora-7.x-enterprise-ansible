@@ -2,7 +2,7 @@
 # milestone 2 - Installing Drupal
 # --volume: {{ DRUPAL_HOME }}
 # --volume: {{ DRUPAL_HOME }}/sites
- 
+
 - name: Set MySQL root password before installing
   debconf:
     name: 'mysql-server'
