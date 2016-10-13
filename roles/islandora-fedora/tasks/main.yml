@@ -73,6 +73,55 @@
     dest: "{{ FEDORA_HOME }}/data/fedora-xacml-policies/repository-policies/default/deny-apim-if-not-localhost.xml"
   with_items: "{{ IP_TO_ACCESS_FEDORA }}"
 
+# Installing Djatoka
+- name: "Create {{ DJATOKA_HOME }} folder"
+  file: 
+    path: "{{ DJATOKA_HOME }}" 
+    state: directory
+    
+- name: "Download Djatoka"
+  get_url:
+    url: "http://downloads.sourceforge.net/project/djatoka/djatoka/1.1/adore-djatoka-1.1.tar.gz"
+    dest: /tmp/adore-djatoka-1.1.tar.gz
+    timeout: 120
+
+- name: Deploy Djatoka
+  shell: "tar -xzf /tmp/adore-djatoka-1.1.tar.gz -C {{ DJATOKA_HOME }} --strip-components=1"
+  args:
+    executable: /bin/bash
+    creates: "{{ DJATOKA_HOME }}/bin/Linux-x86-64/kdu_compress"
+
+- name: Symlink kdu_compress for Large Image Solution Pack
+  file:
+    src: "{{ DJATOKA_HOME }}/bin/Linux-x86-64/kdu_compress"
+    dest: /usr/bin/kdu_compress
+    state: link
+
+- name: Deploy Djatoka
+  copy:
+    src: "{{ DJATOKA_HOME }}/dist/adore-djatoka.war"
+    dest: "{{ TOMCAT_HOME }}/webapps/adore-djatoka.war"
+    remote_src: yes
+
+- name: "Copy kdu_libs.conf"
+  copy:
+    src: kdu_libs.conf
+    dest: /etc/ld.so.conf.d/kdu_libs.conf
+
+- name: Restart tomcat
+  service:
+    name: tomcat7
+    state: restarted
+
+- name: Wait for adore-djatoka
+  wait_for: 
+    path: "{{ TOMCAT_HOME }}/webapps/adore-djatoka/WEB-INF/classes"
+
+- name: "Setup Djatoka Logging"
+  copy:
+    src: log4j.properties
+    dest: "{{ TOMCAT_HOME }}/webapps/adore-djatoka/WEB-INF/classes/log4j.properties"
+
 ### milestone 3 - Installing & Configuring Drupal Filter
 - name: "Download the Latest Version of the Islandora Drupal Filter"
   get_url:
