@@ -85,7 +85,7 @@
     dest: /tmp/adore-djatoka-1.1.tar.gz
     timeout: 120
 
-- name: Deploy Djatoka
+- name: Untar Djatoka
   shell: "tar -xzf /tmp/adore-djatoka-1.1.tar.gz -C {{ DJATOKA_HOME }} --strip-components=1"
   args:
     executable: /bin/bash
@@ -116,6 +116,47 @@
 - name: Wait for adore-djatoka
   wait_for: 
     path: "{{ TOMCAT_HOME }}/webapps/adore-djatoka/WEB-INF/classes"
+
+- name: "DJATOKA: Change the environment variables"
+  blockinfile:
+    dest: "{{ TOMCAT_HOME }}/bin/startup.sh"
+    block:  |
+      . {{ DJATOKA_HOME }}/bin/env.sh
+      export JAVA_OPTS
+      echo $JAVA_OPTS
+      exec "$PRGDIR"/"$EXECUTABLE" start "$@"
+
+- name: "DJATOKA: Modify the env.sh file"
+  replace:
+    regexp: "{{ item.old }}"
+    replace: "{{ item.new }}"
+    dest: "{{ DJATOKA_HOME }}/bin/env.sh"
+  with_items:
+    - old: 'LAUNCHDIR=\$PWD'
+      new: "LAUNCHDIR={{ DJATOKA_HOME }}/bin"
+    - old: 'cd ..'
+      new: '# cd ..'
+    - old: 'DJATOKA_HOME=`pwd`'
+      new: "DJATOKA_HOME={{ DJATOKA_HOME }}"
+    - old: 'cd \$LAUNCHDIR'
+      new: '# cd $LAUNCHDIR'
+    - old: 'for line in'
+      new: '# for line in'
+    - old: '  do'
+      new: '#   do'
+    - old: '  classpath'
+      new: '#   classpath'
+    - old: 'done'
+      new: '# done'
+    - old: 'CLASSPATH='
+      new: '# CLASSPATH='
+    - old: 'JAVA_OPTS="\$DEBUG -Djava.awt.headless=true  -Xmx512M -Xms64M -Dkakadu.home=\$KAKADU_HOME -Djava.library.path=\$LIBPATH\/\$PLATFORM \$KAKADU_LIBRARY_PATH"'
+      new: 'JAVA_OPTS="$JAVA_OPTS -Djava.awt.headless=true -Dkakadu.home=$KAKADU_HOME -Djava.library.path=$LIBPATH/$PLATFORM $KAKADU_LIBRARY_PATH"'
+- lineinfile:
+    dest: "{{ DJATOKA_HOME }}/bin/env.sh"
+    insertafter: "# setup environment variables for shell script"
+    regexp: '^CURRENTDIR=\$PWD'
+    line: "CURRENTDIR=$PWD"
 
 - name: "Setup Djatoka Logging"
   copy:

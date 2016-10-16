@@ -274,6 +274,7 @@
     - tuque
 
 ### milestone 5 - Installing the Islandora Essential Modules
+## prerequisites modules
 - name: Install the ImageMagick Drupal module 
   shell: "{{ item }}"
   with_items:
@@ -284,6 +285,27 @@
     chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
     creates: "{{ DRUPAL_HOME }}/sites/all/modules/imagemagick/imagemagick.module"
 
+- name: Install Openseadragon library 
+  shell: "{{ item }}"
+  with_items:
+    - "wget -O /tmp/openseadragon.zip http://openseadragon.github.io/releases/openseadragon-bin-0.9.129.zip"
+    - "unzip /tmp/openseadragon.zip"
+    - "mv openseadragon-bin-0.9.129 openseadragon"
+  args:
+    executable: /bin/bash
+    chdir: "{{ DRUPAL_HOME }}/sites/all/libraries"
+    creates: "{{ DRUPAL_HOME }}/sites/all/libraries/openseadragon/openseadragon.js"
+
+- name: Install Tesseract
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items:
+    - tesseract-ocr
+    - tesseract-ocr-eng
+    - tesseract-ocr-fra
+
+## Setup the modules
 - name: Download the modules
   git:
     repo: "https://github.com/Islandora/{{ item }}"
@@ -302,6 +324,17 @@
     - objective_forms
     - php_lib
     - islandora_xml_forms
+    ### Enable Batch Ingest Files
+    - islandora_batch
+    - islandora_solution_pack_book
+    - islandora_paged_content
+    - islandora_solution_pack_large_image
+    - islandora_ocr
+    - islandora_book_batch
+    - islandora_openseadragon
+    - islandora_solution_pack_newspaper
+    - islandora_newspaper_batch
+    - islandora_internet_archive_bookreader
   register: islandora_modules
 
 - name: Set git filemode false for git
@@ -321,20 +354,48 @@
     - objective_forms
     - php_lib
     - islandora_xml_forms
+    ### Enable Batch Ingest Files
+    - islandora_batch
+    - islandora_solution_pack_book
+    - islandora_paged_content
+    - islandora_solution_pack_large_image
+    - islandora_ocr
+    - islandora_book_batch
+    - islandora_openseadragon
+    - islandora_solution_pack_newspaper
+    - islandora_newspaper_batch
+    - islandora_internet_archive_bookreader
 
 - name: "Enable the modules"
   shell: "{{ item }}"
   with_items:
     ### Enable Testing module to run some of the Islandora tests
     - drush -y -u 1 en simpletest
+    - drush dl rules
+    - drush en -y rules; drush -y -u 1 en libraries
+    - drush -y -u 1 en colorbox
+    - drush colorbox-plugin
+    # - drush en -y rules
     ### milestone 5 - Installing the Islandora Essential Modules
     - drush -y -u 1 en islandora
     - drush -y -u 1 en islandora_basic_collection
     - drush -y -u 1 en islandora_basic_image
     - drush -y -u 1 en islandora_pdf
     ### milestone 6 - Installing Solr and GSearch
-    - drush -y -u 1 en islandora_solr islandora_solr_metadata islandora_solr_facet_pages islandora_solr_views
-    - drush -y -u 1 en xml_form_builder
+    - drush -y -u 1 en islandora_solr islandora_solr_metadata islandora_solr_facet_pages islandora_solr_views islandora_solr_config
+    - drush -y -u 1 en xml_forms xml_form_builder xml_schema_api xml_form_elements xml_form_api
+    ### Enable Batch Ingest Files
+    - drush -y -u 1 en islandora_batch islandora_batch_report
+    - drush -y -u 1 en islandora_book_batch
+    - drush -y -u 1 en islandora_newspaper_batch
+    ### Some extra modules:
+    - "rm -fr {{ DRUPAL_HOME }}/sites/all/libraries/bookreader; git clone https://github.com/Islandora/internet_archive_bookreader.git {{ DRUPAL_HOME }}/sites/all/libraries/bookreader"
+    - drush -y -u 1 en islandora_internet_archive_bookreader
+    - drush -y -u 1 en islandora_large_image
+    - drush -y -u 1 en islandora_openseadragon
+    - drush -y -u 1 en islandora_ocr
+    - drush -y -u 1 en i18n
+    - drush -y -u 1 en rules_admin rules_scheduler rules_i18n
     ### drush_extras to configure blocks
     ### http://drupal.stackexchange.com/a/3661
     - drush dl drush_extras-7
@@ -347,6 +408,31 @@
     executable: /bin/bash
     chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
   when: islandora_modules.changed or drupal_install.changed
+
+- name: "Set variables for Islandora modules"
+  shell: "{{ item }}"
+  with_items:
+    - drush eval "variable_set('islandora_ocr_tesseract', '/usr/bin/tesseract')"
+    - drush eval "variable_set('islandora_use_kakadu', TRUE)"
+    # - drush eval "variable_set('islandora_audio_viewers', array('name' => array('none' => 'none', 'islandora_videojs' => 'islandora_videojs'), 'default' => 'islandora_videojs'))"
+    # - drush eval "variable_set('islandora_fits_executable_path', '{{ FITS_HOME }}/fits-{{ FITS_VERSION }}/fits.sh')"
+    # - drush eval "variable_set('islandora_lame_url', '/usr/bin/lame')"
+    # - drush eval "variable_set('islandora_video_viewers', array('name' => array('none' => 'none', 'islandora_videojs' => 'islandora_videojs'), 'default' => 'islandora_videojs'))"
+    # - drush eval "variable_set('islandora_video_ffmpeg_path', '/usr/local/bin/ffmpeg')"
+    # - drush eval "variable_set('islandora_book_viewers', array('name' => array('none' => 'none', 'islandora_internet_archive_bookreader' => 'islandora_internet_archive_bookreader'), 'default' => 'islandora_internet_archive_bookreader'))"
+    # - drush eval "variable_set('islandora_book_page_viewers', array('name' => array('none' => 'none', 'islandora_openseadragon' => 'islandora_openseadragon'), 'default' => 'islandora_openseadragon'))"
+    # - drush eval "variable_set('islandora_large_image_viewers', array('name' => array('none' => 'none', 'islandora_openseadragon' => 'islandora_openseadragon'), 'default' => 'islandora_openseadragon'))"
+    # - drush eval "variable_set('islandora_newspaper_issue_viewers', array('name' => array('none' => 'none', 'islandora_internet_archive_bookreader' => 'islandora_internet_archive_bookreader'), 'default' => 'islandora_internet_archive_bookreader'))"
+    # - drush eval "variable_set('islandora_newspaper_page_viewers', array('name' => array('none' => 'none', 'islandora_openseadragon' => 'islandora_openseadragon'), 'default' => 'islandora_openseadragon'))"
+    # - drush eval "variable_set('islandora_pdf_create_fulltext', 1)"
+    # - drush eval "variable_set('islandora_checksum_enable_checksum', TRUE)"
+    # - drush eval "variable_set('islandora_checksum_checksum_type', 'SHA-1')"
+    # - drush eval "variable_set('islandora_batch_java', '/usr/bin/java')"
+    # - drush eval "variable_set('image_toolkit', 'imagemagick')"
+    # - drush eval "variable_set('imagemagick_convert', '/usr/bin/convert')"
+  args:
+    executable: /bin/bash
+    chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
 
 - block:
     - name: Install uploadprogress
@@ -390,7 +476,3 @@
 
 - name: "Run Cron maintenance tasks"
   shell: "drush --root={{ DRUPAL_HOME }} -y -u 1 core-cron"
-  # args:
-  #   executable: /bin/bash
-  #   chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
-  # when: ansible_distribution_release == "xenial"
