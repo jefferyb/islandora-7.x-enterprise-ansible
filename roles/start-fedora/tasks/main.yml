@@ -1,5 +1,11 @@
 ---
 # tasks file for start-fedora
+- name: Create the init script in /etc/init.d/tomcat7
+  template:
+    src: tomcat7.j2
+    dest: /etc/init.d/tomcat7
+    mode: "u=rwx,g=rx,o=rx"
+
 - name: Create an "install.properties" file
   template:
     src: install.properties.j2 

@@ -2,7 +2,7 @@
 #   $ docker build -t islandora-fedora --pull .
 #
 # To run, do:
-#   $ docker run -d --name islandora-fedora-server -p 8080:8080 islandora-fedora
+#   $ docker run -d --name islandora-fedora-server --link islandora-mysql-server:islandora-mysql -p 8080:8080 islandora-fedora
 
 FROM jefferyb/ansible:trusty
 MAINTAINER Jeffery Bagirimvano <jefferyb@uark.edu>
@@ -36,9 +36,8 @@ ENV DJATOKA_HOSTNAME="localhost"
 
 
 RUN \
-    mkdir -p /playbooks && \
-    git clone -b docker-install https://github.com/jefferyb/islandora-7.x-enterprise-ansible.git /playbooks/islandora-7.x-Enterprise && \
-    cd /playbooks/islandora-7.x-Enterprise && \
+    git clone -b docker-install https://github.com/jefferyb/islandora-7.x-enterprise-ansible.git /root/islandora-7.x-Enterprise && \
+    cd /root/islandora-7.x-Enterprise && \
 
     echo '---\n\
 - hosts: localhost\n\
@@ -59,11 +58,11 @@ RUN \
 VOLUME /playbooks
 VOLUME ${FEDORA_HOME} ${TOMCAT_HOME}
 
-WORKDIR /playbooks/islandora-7.x-Enterprise
+WORKDIR /root/islandora-7.x-Enterprise
 
 EXPOSE 8080
 
 CMD \
     ansible-playbook start-fedora.yaml && \
-    tail -f /var/logs/tomcat7/catalina.out
+    tail -f /var/log/tomcat7/catalina.out
 
