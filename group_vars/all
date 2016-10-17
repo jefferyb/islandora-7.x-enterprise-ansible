@@ -2,16 +2,16 @@
   MYSQL_HOSTNAME: "localhost"
   MYSQL_PORT: "3306"
   MYSQL_ROOT_USER: "root"
-  MYSQL_ROOT_PASSWORD: "islandora"
+  MYSQL_ROOT_PASSWORD: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
 
-  DRUPAL_DATABASE_NAME: "drupal7"
-  FEDORA_DATABASE_NAME: "fedora3"
+  DRUPAL_DATABASE_NAME: "{{ lookup('env','DRUPAL_DATABASE_NAME') }}"
+  FEDORA_DATABASE_NAME: "{{ lookup('env','FEDORA_DATABASE_NAMEHOME') }}"
 
-  FEDORA_DATABASE_USER: "fedoraAdmin"
-  FEDORA_DATABASE_PASSWORD: "islandora"
+  FEDORA_DATABASE_USER: "{{ lookup('env','FEDORA_DATABASE_USER') }}"
+  FEDORA_DATABASE_PASSWORD: "{{ lookup('env','FEDORA_DATABASE_PASSWORD') }}"
 
-  FGSADMIN_USER: fgsAdmin
-  FGSADMIN_PASSWORD: islandora
+  FGSADMIN_USER: "{{ lookup('env','FGSADMIN_USER') }}"
+  FGSADMIN_PASSWORD: "{{ lookup('env','FGSADMIN_PASSWORD') }}"
 
 # Tomcat Settings:
   TOMCAT_HOME: "/var/lib/tomcat7"
