@@ -21,7 +21,7 @@ ENV FGSADMIN_USER="fgsAdmin"
 ENV FGSADMIN_PASSWORD="islandora"
 
 # Tomcat Settings:
-ENV TOMCAT_HOME="/var/lib/tomcat7"
+ENV TOMCAT_HOME="/usr/local/tomcat7"
 ENV TOMCAT_USER="tomcat7"
 ENV JAVA_HOME="/usr/lib/jvm/java-8-oracle/jre"
 
