@@ -14,6 +14,7 @@
   get_url:
     url: "https://github.com/fcrepo3/fcrepo/releases/download/v{{ FEDORA_VERSION }}/fcrepo-installer-{{ FEDORA_VERSION }}.jar"
     dest: "/tmp/fcrepo-installer-{{ FEDORA_VERSION }}.jar"
+    timeout: 120
 
 - name: Prepare the local environment variables
   template:
@@ -55,10 +56,12 @@
     src: kdu_libs.conf
     dest: /etc/ld.so.conf.d/kdu_libs.conf
 
+# Work around for a tomcat issue in docker
 - name: Restart tomcat
   service:
     name: tomcat7
     state: restarted
+  ignore_errors: True
 
 - name: Wait for adore-djatoka
   wait_for: 
@@ -66,7 +69,7 @@
 
 - name: "DJATOKA: Change the environment variables"
   blockinfile:
-    dest: "{{ TOMCAT_HOME }}/bin/startup.sh"
+    dest: "/usr/share/tomcat7/bin/startup.sh"
     block:  |
       . {{ DJATOKA_HOME }}/bin/env.sh
       export JAVA_OPTS

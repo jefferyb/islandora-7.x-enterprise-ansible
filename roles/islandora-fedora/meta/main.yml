@@ -195,5 +195,4 @@ galaxy_info:
     # alphanumeric characters. Maximum 20 tags per role.
 
 dependencies:
-  - islandora-mysql
   - islandora-tomcat

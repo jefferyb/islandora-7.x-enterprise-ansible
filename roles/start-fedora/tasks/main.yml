@@ -21,10 +21,12 @@
     - "{{ TOMCAT_HOME }}/webapps"
     - "{{ FEDORA_HOME }}"
 
-- name: Start tomcat
+# Work around for a tomcat issue in docker
+- name: Restart tomcat
   service:
-    name: "{{ TOMCAT_USER }}"
+    name: tomcat7
     state: restarted
+  ignore_errors: True
 
 - name: Wait for tomcat
   wait_for:
@@ -100,10 +102,12 @@
         </attribute>
       </user>
 
-- name: Start tomcat
+# Work around for a tomcat issue in docker
+- name: Restart tomcat
   service:
-    name: "{{ TOMCAT_USER }}"
+    name: tomcat7
     state: restarted
+  ignore_errors: True
 
 - name: Wait for tomcat
   wait_for:

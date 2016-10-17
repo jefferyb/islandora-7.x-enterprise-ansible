@@ -45,14 +45,14 @@ RUN \
   roles:\n\
     - islandora-fedora\n\
 \n'\
->> install-islandora-fedora.yaml && \
+> install-islandora-fedora.yaml && \
 
     echo '---\n\
 - hosts: localhost\n\
   roles:\n\
     - start-fedora\n\
 \n'\
->> start-fedora.yaml && \
+> start-fedora.yaml && \
 
     ansible-playbook install-islandora-fedora.yaml
 
