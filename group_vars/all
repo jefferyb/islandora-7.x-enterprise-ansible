@@ -1,7 +1,7 @@
 # MySQL Settings:
-  MYSQL_HOSTNAME: "localhost"
-  MYSQL_PORT: "3306"
-  MYSQL_ROOT_USER: "root"
+  MYSQL_HOSTNAME: "{{ lookup('env','MYSQL_HOSTNAME') }}"
+  MYSQL_PORT: "{{ lookup('env','MYSQL_PORT') }}"
+  MYSQL_ROOT_USER: "{{ lookup('env','MYSQL_ROOT_USER') }}"
   MYSQL_ROOT_PASSWORD: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
 
   DRUPAL_DATABASE_NAME: "{{ lookup('env','DRUPAL_DATABASE_NAME') }}"
@@ -14,22 +14,22 @@
   FGSADMIN_PASSWORD: "{{ lookup('env','FGSADMIN_PASSWORD') }}"
 
 # Tomcat Settings:
-  TOMCAT_HOME: "/var/lib/tomcat7"
-  TOMCAT_USER: "tomcat7"
-  JAVA_HOME: "/usr/lib/jvm/java-8-oracle/jre"
+  TOMCAT_HOME: "{{ lookup('env','TOMCAT_HOME') }}"
+  TOMCAT_USER: "{{ lookup('env','TOMCAT_USER') }}"
+  JAVA_HOME: "{{ lookup('env','JAVA_HOME') }}"
 
 # Fedora Settings:
-  FEDORA_HOME: "/usr/local/fedora"
-  FEDORA_VERSION: 3.8.1
-  FEDORA_HOSTNAME: "localhost"
+  FEDORA_HOME: "{{ lookup('env','FEDORA_HOME') }}"
+  FEDORA_VERSION: "{{ lookup('env','FEDORA_VERSION') }}"
+  FEDORA_HOSTNAME: "{{ lookup('env','FEDORA_HOSTNAME') }}"
   # An example of giving an IP access to fedora
   IP_TO_ACCESS_FEDORA:
       - 192.168.3.17
       - 192.168.10.4
 
 # Djatoka Settings:
-  DJATOKA_HOME: "/usr/local/djatoka"
-  DJATOKA_HOSTNAME: "localhost"
+  DJATOKA_HOME: "{{ lookup('env','DJATOKA_HOME') }}"
+  DJATOKA_HOSTNAME: "{{ lookup('env','DJATOKA_HOSTNAME') }}"
 
 # Apache Settings:
   APACHE_CONFIG_FILE: "/etc/apache2/sites-enabled/000-default.conf"

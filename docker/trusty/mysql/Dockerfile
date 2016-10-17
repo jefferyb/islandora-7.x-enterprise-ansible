@@ -16,8 +16,8 @@ ENV FGSADMIN_PASSWORD="islandora"
 ENV DRUPAL_DATABASE_NAME="drupal7"
 
 RUN \
-    mkdir -p /playbooks
-    git clone clone -b docker-install https://github.com/jefferyb/islandora-7.x-enterprise-ansible.git /playbooks/islandora-7.x-Enterprise && \
+    mkdir -p /playbooks && \
+    git clone -b docker-install https://github.com/jefferyb/islandora-7.x-enterprise-ansible.git /playbooks/islandora-7.x-Enterprise && \
     cd /playbooks/islandora-7.x-Enterprise && \
 
     echo '---\n\
@@ -27,7 +27,7 @@ RUN \
 \n'\
 >> install-islandora-mysql.yaml && \
 
-    ansible-playbook install-islandora-mysql.yaml && \
+    ansible-playbook install-islandora-mysql.yaml
 
 VOLUME /playbooks
 VOLUME /var/lib/mysql
