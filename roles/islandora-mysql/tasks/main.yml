@@ -36,6 +36,12 @@
     - ansible_virtualization_type == "docker"
     - ansible_distribution_release == "trusty"
 
+- name: Allow remote access
+  replace:
+    regexp: "bind-address          = 127.0.0.1"
+    replace: "# bind-address          = 127.0.0.1"
+    dest: '/etc/mysql/my.cnf'
+
 - block:
     - name: "Edit /etc/mysql/my.cnf for 4 byte UTF-8 support"
       blockinfile:
@@ -72,6 +78,7 @@
     priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
     state: present
     login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+    host: "{{ MYSQL_REMOTE_HOST }}"
 
 - name: Create fgsAdmin user
   mysql_user: 
@@ -80,4 +87,5 @@
     priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
     state: present
     login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+    host: "{{ MYSQL_REMOTE_HOST }}"
 

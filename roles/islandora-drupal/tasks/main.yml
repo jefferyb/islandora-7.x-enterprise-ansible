@@ -328,6 +328,8 @@
 - name: "Enable the modules"
   shell: "{{ item }}"
   with_items:
+    - "grep -rl 'localhost:8080/solr' {{ DRUPAL_HOME }} | xargs sed -i 's/localhost:8080\/solr/{{ SOLR_HOSTNAME }}:8080\/solr/g'"
+    - "grep -rl 'localhost:8080/fedora' {{ DRUPAL_HOME }} | xargs sed -i 's/localhost:8080\/fedora/{{ FEDORA_HOSTNAME }}:8080\/fedora/g'"
     ### Enable Testing module to run some of the Islandora tests
     - drush -y -u 1 en simpletest
     ### milestone 5 - Installing the Islandora Essential Modules
