@@ -18,7 +18,7 @@
 
          Note that 3306 is the default mysql port.
       -->
-    <connection server="{{ MYSQL_HOSTNAME }}" port="{{ MYSQL_PORT }}" dbname="{{ DRUPAL_DATABASE_NAME }}" user="{{ MYSQL_ROOT_USER }}" password="{{ MYSQL_ROOT_PASSWORD }}">
+    <connection server="{{ DRUPAL_MYSQL_HOSTNAME }}" port="{{ DRUPAL_MYSQL_PORT }}" dbname="{{ DRUPAL_DATABASE_NAME }}" user="{{ MYSQL_ROOT_USER }}" password="{{ MYSQL_ROOT_PASSWORD }}">
       <sql>
         <!--Different sql statement for each connection.  This is for drupal
              multisites that are setup using one database with table prefixes.

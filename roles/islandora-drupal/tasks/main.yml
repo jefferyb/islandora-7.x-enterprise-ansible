@@ -161,6 +161,53 @@
     state: reloaded
   when: apache_modules.changed
 
+- name: Install Drupal
+  shell: "{{ item }}"
+  with_items:
+    - "drush si -y --db-url=mysql://{{ MYSQL_ROOT_USER }}:{{ MYSQL_ROOT_PASSWORD }}@{{ MYSQL_HOSTNAME }}/{{ DRUPAL_DATABASE_NAME }} --site-name='{{ DRUPAL_SITE_NAME }}' --site-mail='{{ DRUPAL_SITE_MAIL }}' --account-mail='{{ DRUPAL_ACCOUNT_MAIL }}'"
+  args:
+    executable: /bin/bash
+    chdir: "{{ DRUPAL_HOME }}/"
+    creates: "{{ DRUPAL_HOME }}/sites/default/settings.php"
+  register: drupal_install
+
+  ### Change admin's password
+- name: Add admin user to drupal
+  shell: "{{ item }}"
+  with_items:
+    - "drush user-password {{ DRUPAL_SITE_ADMIN }} --password={{ DRUPAL_SITE_ADMIN_PASSWORD }}"
+  args:
+    executable: /bin/bash
+    chdir: "{{ DRUPAL_HOME }}/"
+  when: drupal_install.changed
+
+- block:
+      ### Converts MySQL UTF8 databases into UTF8MB4
+    - name: "UTF8MB4 Convert"
+      shell: "{{ item }}"
+      with_items:
+        - drush @none dl -y utf8mb4_convert-7.x
+        - drush vset maintenance_mode 1
+        - drush -y utf8mb4-convert-databases
+        - drush vset maintenance_mode 0
+      args:
+        executable: /bin/bash
+        chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
+    - name: "Enable collation in settings.php"
+      lineinfile:
+        dest: "{{ DRUPAL_HOME }}/sites/default/settings.php"
+        regexp: "      'collation'"
+        insertafter: "      'password'"
+        line: "      'collation' => 'utf8mb4_general_ci',"
+    - name: "Enable charset in settings.php"
+      lineinfile:
+        dest: "{{ DRUPAL_HOME }}/sites/default/settings.php"
+        regexp: "      'charset'"
+        insertafter: "      'password'"
+        line: "      'charset' => 'utf8mb4',"
+  when: 
+    - drupal_install.changed
+
 - name: "Enable proxy module"
   file:
     src: "{{ item.src }}"
@@ -227,7 +274,6 @@
     - tuque
 
 ### milestone 5 - Installing the Islandora Essential Modules
-## prerequisites modules
 - name: Install the ImageMagick Drupal module 
   shell: "{{ item }}"
   with_items:
@@ -238,27 +284,6 @@
     chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
     creates: "{{ DRUPAL_HOME }}/sites/all/modules/imagemagick/imagemagick.module"
 
-- name: Install Openseadragon library 
-  shell: "{{ item }}"
-  with_items:
-    - "wget -O /tmp/openseadragon.zip http://openseadragon.github.io/releases/openseadragon-bin-0.9.129.zip"
-    - "unzip /tmp/openseadragon.zip"
-    - "mv openseadragon-bin-0.9.129 openseadragon"
-  args:
-    executable: /bin/bash
-    chdir: "{{ DRUPAL_HOME }}/sites/all/libraries"
-    creates: "{{ DRUPAL_HOME }}/sites/all/libraries/openseadragon/openseadragon.js"
-
-- name: Install Tesseract
-  apt:
-    pkg: "{{ item }}"
-    state: present
-  with_items:
-    - tesseract-ocr
-    - tesseract-ocr-eng
-    - tesseract-ocr-fra
-
-## Setup the modules
 - name: Download the modules
   git:
     repo: "https://github.com/Islandora/{{ item }}"
@@ -277,17 +302,6 @@
     - objective_forms
     - php_lib
     - islandora_xml_forms
-    ### Enable Batch Ingest Files
-    - islandora_batch
-    - islandora_solution_pack_book
-    - islandora_paged_content
-    - islandora_solution_pack_large_image
-    - islandora_ocr
-    - islandora_book_batch
-    - islandora_openseadragon
-    - islandora_solution_pack_newspaper
-    - islandora_newspaper_batch
-    - islandora_internet_archive_bookreader
   register: islandora_modules
 
 - name: Set git filemode false for git
@@ -307,17 +321,32 @@
     - objective_forms
     - php_lib
     - islandora_xml_forms
-    ### Enable Batch Ingest Files
-    - islandora_batch
-    - islandora_solution_pack_book
-    - islandora_paged_content
-    - islandora_solution_pack_large_image
-    - islandora_ocr
-    - islandora_book_batch
-    - islandora_openseadragon
-    - islandora_solution_pack_newspaper
-    - islandora_newspaper_batch
-    - islandora_internet_archive_bookreader
+
+- name: "Enable the modules"
+  shell: "{{ item }}"
+  with_items:
+    ### Enable Testing module to run some of the Islandora tests
+    - drush -y -u 1 en simpletest
+    ### milestone 5 - Installing the Islandora Essential Modules
+    - drush -y -u 1 en islandora
+    - drush -y -u 1 en islandora_basic_collection
+    - drush -y -u 1 en islandora_basic_image
+    - drush -y -u 1 en islandora_pdf
+    ### milestone 6 - Installing Solr and GSearch
+    - drush -y -u 1 en islandora_solr islandora_solr_metadata islandora_solr_facet_pages islandora_solr_views
+    - drush -y -u 1 en xml_form_builder
+    ### drush_extras to configure blocks
+    ### http://drupal.stackexchange.com/a/3661
+    - drush dl drush_extras-7
+    - drush block-configure --module=search --delta=form --region=-1 --weight=5
+    - drush block-configure --module=islandora_solr --delta=simple --region=sidebar_first --weight=-13
+    ### Apply any database updates required (as with running update.php).
+    - drush -y updatedb
+    - drush -y core-cron
+  args:
+    executable: /bin/bash
+    chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
+  when: islandora_modules.changed or drupal_install.changed
 
 - block:
     - name: Install uploadprogress
@@ -361,3 +390,7 @@
 
 - name: "Run Cron maintenance tasks"
   shell: "drush --root={{ DRUPAL_HOME }} -y -u 1 core-cron"
+  # args:
+  #   executable: /bin/bash
+  #   chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
+  # when: ansible_distribution_release == "xenial"

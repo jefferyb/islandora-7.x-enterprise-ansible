@@ -36,7 +36,6 @@
     - ansible_virtualization_type == "docker"
     - ansible_distribution_release == "trusty"
 
-
 - block:
     - name: "Edit /etc/mysql/my.cnf for 4 byte UTF-8 support"
       blockinfile:

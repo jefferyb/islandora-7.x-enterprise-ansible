@@ -22,6 +22,8 @@
   FEDORA_HOME: "{{ lookup('env','FEDORA_HOME') }}"
   FEDORA_VERSION: "{{ lookup('env','FEDORA_VERSION') }}"
   FEDORA_HOSTNAME: "{{ lookup('env','FEDORA_HOSTNAME') }}"
+  DRUPAL_MYSQL_HOSTNAME: "{{ lookup('env','DRUPAL_MYSQL_HOSTNAME') }}"
+  DRUPAL_MYSQL_PORT: "{{ lookup('env','DRUPAL_MYSQL_PORT') }}"
   # An example of giving an IP access to fedora
   IP_TO_ACCESS_FEDORA:
       - 192.168.3.17

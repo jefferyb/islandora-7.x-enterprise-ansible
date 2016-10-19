@@ -52,3 +52,9 @@
   shell: cp -f /etc/init.d/tomcat7 /etc/init.d/tomcat7.original
   when: install_tomcat.changed
 
+- name: Create the init script in /etc/init.d/tomcat7
+  template:
+    src: tomcat7.j2
+    dest: /etc/init.d/tomcat7
+    mode: "u=rwx,g=rx,o=rx"
+

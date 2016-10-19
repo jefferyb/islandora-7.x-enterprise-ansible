@@ -4,7 +4,6 @@
   get_url:
     url: "https://sourceforge.net/projects/fedora-commons/files/services/3.7/fedoragsearch-2.8.zip/download"
     dest: "/tmp/fedoragsearch-2.8.zip"
-    timeout: 120
   register: fedoragsearch
 
 - name: Unzip GSearch 2.8
