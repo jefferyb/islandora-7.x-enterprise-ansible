@@ -274,15 +274,18 @@
     - tuque
 
 ### milestone 5 - Installing the Islandora Essential Modules
-- name: Install the ImageMagick Drupal module 
-  shell: "{{ item }}"
-  with_items:
-    - "wget -O /tmp/imagemagick.zip http://ftp.drupal.org/files/projects/imagemagick-7.x-1.0.zip"
-    - "unzip /tmp/imagemagick.zip"
-  args:
-    executable: /bin/bash
-    chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
+- name: Download ImageMagick Drupal module
+  get_url:
+    url: http://ftp.drupal.org/files/projects/imagemagick-7.x-1.0.zip
+    dest: /tmp/imagemagick.zip
+
+- name: Unzip ImageMagick Drupal module
+  unarchive:
+    src: /tmp/imagemagick.zip
+    dest: "{{ DRUPAL_HOME }}/sites/all/modules"
     creates: "{{ DRUPAL_HOME }}/sites/all/modules/imagemagick/imagemagick.module"
+    owner: www-data
+    group: www-data
 
 - name: Download the modules
   git:
