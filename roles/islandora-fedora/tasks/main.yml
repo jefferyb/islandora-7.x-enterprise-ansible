@@ -31,6 +31,17 @@
     chdir: /tmp/
     creates: "{{ TOMCAT_HOME }}/webapps/fedora.war"
 
+- name: "Setup fedora.fcfg"
+  replace:
+    dest: "{{ FEDORA_HOME }}/server/config/fedora.fcfg"
+    regexp: "{{ item.find }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - find: 'param name="gSearchRESTURL" value="http://localhost:8080/fedoragsearch/rest"'
+      replace: "param name=\"gSearchRESTURL\" value=\"http://{{ GSEARCH_HOSTNAME | default('localhost') }}:8080/fedoragsearch/rest\""
+    - find: 'param name="fedoraServerHost" value="localhost"'
+      replace: "param name=\"fedoraServerHost\" value=\"{{ FEDORA_HOSTNAME }}\""
+
 - name: Set Permissions
   file: 
     path: "{{ item }}"
