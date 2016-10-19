@@ -38,8 +38,8 @@
 
 - name: Allow remote access
   replace:
-    regexp: "bind-address          = 127.0.0.1"
-    replace: "# bind-address          = 127.0.0.1"
+    regexp: '^bind-address'
+    replace: '# bind-address'
     dest: '/etc/mysql/my.cnf'
 
 - block:
