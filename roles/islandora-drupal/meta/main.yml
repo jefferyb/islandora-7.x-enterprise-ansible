@@ -196,4 +196,3 @@ galaxy_info:
 
 dependencies:
   - islandora-mysql
-  - islandora-tomcat

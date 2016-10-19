@@ -96,7 +96,7 @@
     dest: /tmp/adore-djatoka-1.1.tar.gz
     timeout: 120
 
-- name: Deploy Djatoka
+- name: Untar Djatoka
   shell: "tar -xzf /tmp/adore-djatoka-1.1.tar.gz -C {{ DJATOKA_HOME }} --strip-components=1"
   args:
     executable: /bin/bash
@@ -118,6 +118,62 @@
   copy:
     src: kdu_libs.conf
     dest: /etc/ld.so.conf.d/kdu_libs.conf
+
+- command: "touch {{ TOMCAT_HOME }}/bin/setenv.sh"
+- name: "DJATOKA: Setup setenv.sh"
+  blockinfile:
+    dest: "{{ TOMCAT_HOME }}/bin/setenv.sh"
+    block:  |
+      . {{ DJATOKA_HOME }}/bin/env.sh
+      export DJATOKA_HOME={{ DJATOKA_HOME }}
+      export KAKADU_LIBRARY_PATH={{ DJATOKA_HOME }}/lib/Linux-x86-64
+      export KAKADU_HOME={{ DJATOKA_HOME }}/bin/Linux-x86-64
+      export FEDORA_HOME={{ FEDORA_HOME }}
+      export CATALINA_HOME={{ TOMCAT_HOME }}
+      LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CATALINA_HOME/lib
+      export LD_LIBRARY_PATH
+      export PATH=$FEDORA_HOME/server/bin:$FEDORA_HOME/client/bin:$JAVA_HOME/bin:$CATALINA_HOME/bin:/usr/lib/jvm/java-8-oracle/jre/bin:$PATH
+      export JAVA_OPTS="$JAVA_OPTS -Xms1024m -Xmx1024m -XX:PermSize-128m -XX:MaxPermSize=768m -Djavax.net.ssl.trustStore={{ FEDORA_HOME }}/server/truststore -Djavax.net.ssl.trustStorePassword=tomcat"
+      export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+      export JRE_HOME=/usr/lib/jvm/java-8-oracle/jre
+      export J2SDKDIR=/usr/lib/jvm/java-8-oracle
+      export J2REDIR=/usr/lib/jvm/java-8-oracle/jre
+      echo $JAVA_OPTS
+      echo $DJATOKA_HOME
+      echo $KAKADU_HOME
+      echo $PATH
+
+- name: "DJATOKA: Modify the env.sh file"
+  replace:
+    regexp: "{{ item.old }}"
+    replace: "{{ item.new }}"
+    dest: "{{ DJATOKA_HOME }}/bin/env.sh"
+  with_items:
+    - old: 'LAUNCHDIR=\$PWD'
+      new: "LAUNCHDIR={{ DJATOKA_HOME }}/bin"
+    - old: 'cd ..'
+      new: '# cd ..'
+    - old: 'DJATOKA_HOME=`pwd`'
+      new: "DJATOKA_HOME={{ DJATOKA_HOME }}"
+    - old: 'cd \$LAUNCHDIR'
+      new: '# cd $LAUNCHDIR'
+    - old: 'for line in'
+      new: '# for line in'
+    - old: '  do'
+      new: '#   do'
+    - old: '  classpath'
+      new: '#   classpath'
+    - old: 'done'
+      new: '# done'
+    - old: 'CLASSPATH='
+      new: '# CLASSPATH='
+    - old: 'JAVA_OPTS="\$DEBUG -Djava.awt.headless=true  -Xmx512M -Xms64M -Dkakadu.home=\$KAKADU_HOME -Djava.library.path=\$LIBPATH\/\$PLATFORM \$KAKADU_LIBRARY_PATH"'
+      new: 'JAVA_OPTS="$JAVA_OPTS -Djava.awt.headless=true -Dkakadu.home=$KAKADU_HOME -Djava.library.path=$LIBPATH/$PLATFORM $KAKADU_LIBRARY_PATH"'
+- lineinfile:
+    dest: "{{ DJATOKA_HOME }}/bin/env.sh"
+    insertafter: "# setup environment variables for shell script"
+    regexp: '^CURRENTDIR=\$PWD'
+    line: "CURRENTDIR=$PWD"
 
 - name: Restart tomcat
   service:

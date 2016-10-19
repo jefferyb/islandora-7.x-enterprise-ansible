@@ -390,7 +390,3 @@
 
 - name: "Run Cron maintenance tasks"
   shell: "drush --root={{ DRUPAL_HOME }} -y -u 1 core-cron"
-  # args:
-  #   executable: /bin/bash
-  #   chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
-  # when: ansible_distribution_release == "xenial"
