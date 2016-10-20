@@ -3,7 +3,6 @@
   MYSQL_PORT: "{{ lookup('env','MYSQL_PORT') }}"
   MYSQL_ROOT_USER: "{{ lookup('env','MYSQL_ROOT_USER') }}"
   MYSQL_ROOT_PASSWORD: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
-  MYSQL_REMOTE_HOST: "{{ lookup('env','MYSQL_ROOT_PASSWORD') | default('%') }}"
 
   DRUPAL_DATABASE_NAME: "{{ lookup('env','DRUPAL_DATABASE_NAME') }}"
   FEDORA_DATABASE_NAME: "{{ lookup('env','FEDORA_DATABASE_NAME') }}"

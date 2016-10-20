@@ -74,18 +74,25 @@
 - name: Create Fedora database user
   mysql_user: 
     name: "{{ FEDORA_DATABASE_USER }}" 
+    host: "%"
     password: "{{ FEDORA_DATABASE_PASSWORD }}"
     priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
     state: present
     login_password: "{{ MYSQL_ROOT_PASSWORD }}"
-    host: "{{ MYSQL_REMOTE_HOST }}"
 
 - name: Create fgsAdmin user
   mysql_user: 
     name: "{{ FGSADMIN_USER }}" 
+    host: "%"
     password: "{{ FGSADMIN_PASSWORD }}"
     priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
     state: present
     login_password: "{{ MYSQL_ROOT_PASSWORD }}"
-    host: "{{ MYSQL_REMOTE_HOST }}"
 
+- name: Update root user
+  mysql_user: 
+    name: root
+    host: "%"
+    password: "{{ MYSQL_ROOT_PASSWORD }}"
+    state: present
+    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
