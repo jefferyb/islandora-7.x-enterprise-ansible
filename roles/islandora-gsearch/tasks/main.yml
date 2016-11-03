@@ -1,21 +1,22 @@
 ---
 # milestone 6 - Installing GSearch
-- name: Download GSearch 2.8
+- name: "Download GSearch {{ GSEARCH_VERSION }}"
   get_url:
-    url: "https://sourceforge.net/projects/fedora-commons/files/services/3.7/fedoragsearch-2.8.zip/download"
-    dest: "/tmp/fedoragsearch-2.8.zip"
+    url: "https://sourceforge.net/projects/fedora-commons/files/services/3.7/fedoragsearch-{{ GSEARCH_VERSION }}.zip/download"
+    dest: "/tmp/fedoragsearch-{{ GSEARCH_VERSION }}.zip"
+    timeout: 120
   register: fedoragsearch
 
-- name: Unzip GSearch 2.8
+- name: "Unzip GSearch {{ GSEARCH_VERSION }}"
   unarchive:
-    src: "/tmp/fedoragsearch-2.8.zip"
+    src: "/tmp/fedoragsearch-{{ GSEARCH_VERSION }}.zip"
     dest: "/tmp"
     remote_src: yes
   when: fedoragsearch.changed
 
-- name: "Deploy GSearch 2.8 war file"
+- name: "Deploy GSearch {{ GSEARCH_VERSION }} war file"
   copy:
-    src: /tmp/fedoragsearch-2.8/fedoragsearch.war
+    src: "/tmp/fedoragsearch-{{ GSEARCH_VERSION }}/fedoragsearch.war"
     dest: "{{ TOMCAT_HOME }}/webapps/fedoragsearch.war"
     remote_src: True
   when: fedoragsearch.changed

@@ -1,7 +1,7 @@
 ---
 # milestone 2 - Installing Drupal
 # --volume: {{ DRUPAL_HOME }}
-# --volume: {{ DRUPAL_HOME }}/sites
+# --volume: {{ DRUPAL_HOME }}/sites/default
 
 - name: Set MySQL root password before installing
   debconf:
@@ -155,6 +155,15 @@
     - xml2enc
   register: apache_modules
 
+- name: Increase the maximum file size settings in Drupal
+  blockinfile:
+    dest: /etc/php5/apache2/conf.d/20-islandora.ini
+    create: yes
+    block: |
+      upload_max_filesize = 2048M
+      post_max_size = 2048M
+      memory_limit = 256M
+
 - name: Reload apache
   service:
     name: apache2
@@ -261,9 +270,16 @@
   git:
     repo: "https://github.com/Islandora/{{ item }}"
     dest: "{{ DRUPAL_HOME }}/sites/all/libraries/{{ item }}"
+    version: "{{ TUQUE_VERSION }}"
     update: no
   with_items:
     - tuque
+
+- name: Disable certificate validation in the Islandora module
+  replace:
+    regexp: 'verifyPeer = TRUE'
+    replace: 'verifyPeer = FALSE'
+    dest: "{{ DRUPAL_HOME }}/sites/all/libraries/tuque/HttpConnection.php"
 
 - name: Set git filemode false for git
   replace:
@@ -288,8 +304,8 @@
   git:
     repo: "https://github.com/Islandora/{{ item }}"
     dest: "{{ DRUPAL_HOME }}/sites/all/modules/{{ item }}"
+    version: "{{ ISLANDORA_VERSION }}"
     update: no
-    # version: 7.x-1.5
   with_items:
     - islandora
     - islandora_solution_pack_collection
@@ -322,6 +338,12 @@
     - php_lib
     - islandora_xml_forms
 
+- name: Fix islandora_xml_forms module [ 'schema  _api' -> xml_schema_api ]
+  replace:
+    regexp: 'schema  _api'
+    replace: 'xml_schema_api'
+    dest: "{{ DRUPAL_HOME }}/sites/all/modules/islandora_xml_forms/api/schema/Extension.inc"
+
 - name: "Enable the modules"
   shell: "{{ item }}"
   with_items:
@@ -340,6 +362,8 @@
     - drush dl drush_extras-7
     - drush block-configure --module=search --delta=form --region=-1 --weight=5
     - drush block-configure --module=islandora_solr --delta=simple --region=sidebar_first --weight=-13
+    ### Apply some variables.
+    - drush variable-set date_default_timezone "{{ DRUPAL_TIMEZONE }}"
     ### Apply any database updates required (as with running update.php).
     - drush -y updatedb
     - drush -y core-cron
@@ -390,7 +414,3 @@
 
 - name: "Run Cron maintenance tasks"
   shell: "drush --root={{ DRUPAL_HOME }} -y -u 1 core-cron"
-  # args:
-  #   executable: /bin/bash
-  #   chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
-  # when: ansible_distribution_release == "xenial"

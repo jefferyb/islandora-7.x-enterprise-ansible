@@ -10,6 +10,7 @@
   get_url:
     url: "http://archive.apache.org/dist/lucene/solr/{{ SOLR_VERSION }}/solr-{{ SOLR_VERSION }}.tgz"
     dest: "/tmp/solr-{{ SOLR_VERSION }}.tgz"
+    timeout: 120
   register: download_solr
 
 - name: Deploy Solr
@@ -24,17 +25,20 @@
 
 - name: Install ant
   apt:
-    pkg: ant
+    pkg: "{{ item }}"
     state: present
     update_cache: true
     cache_valid_time: 3600
+  with_items:
+    - ant
+    - curl
 
 - name: Run Apache ant on fgsconfig-basic.xml
   shell: "{{ item }}"
   with_items:
     - ant -f fgsconfig-basic.xml
     - "cp -f {{ SOLR_HOME }}/collection1/conf/schema.xml {{ SOLR_HOME }}/collection1/conf/schema.bkp"
-    - "cp -f {{ TOMCAT_HOME }}/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/conf/schema-4.2.0-for-fgs-2.6.xml {{ SOLR_HOME }}/collection1/conf/schema.xml"
+    - "cp -f {{ TOMCAT_HOME }}/webapps/fedoragsearch/WEB-INF/classes/fgsconfigFinal/index/FgsIndex/conf/schema-4.2.0-for-fgs-2.7.xml {{ SOLR_HOME }}/collection1/conf/schema.xml"
   args:
     executable: /bin/bash
     chdir: "{{ TOMCAT_HOME }}/webapps/fedoragsearch/FgsConfig"
@@ -60,6 +64,23 @@
     recurse: yes
   with_items:
     - "{{ TOMCAT_HOME }}/webapps"
+    - "{{ FEDORA_HOME }}"
+
+- name: Set filter-drupal.xml Permissions
+  file: 
+    path: "{{ FEDORA_HOME }}/server/config/filter-drupal.xml"
+    owner: "www-data"
+    group: "www-data"
+
+- name: "Remove {{ TOMCAT_HOME }}/logs/catalina.out for the new one"
+  file:
+    path: "{{ TOMCAT_HOME }}/logs/catalina.out"
+    state: absent
+
+- name: Stop Apache
+  service:
+    name: apache2
+    state: stopped
 
 - name: Kill tomcat 7
   command: pkill java
@@ -67,11 +88,31 @@
 - name: Start tomcat
   service:
     name: "{{ TOMCAT_USER }}"
-    state: restarted
+    state: started
 
 - name: Wait for tomcat
   wait_for:
     path: "{{ TOMCAT_HOME }}/logs/catalina.out"
-    search_regex: "solr.xml has finished"
+    search_regex: "Server startup"
+
+- name: Start apache
+  service:
+    name: apache2
+    state: started
+
+- name: Update Index fromFoxmlFiles
+  uri:
+    url: "http://{{ GSEARCH_HOSTNAME }}:8080/fedoragsearch/rest?operation=updateIndex&action=fromFoxmlFiles"
+    method: GET
+    user: "{{ FEDORA_DATABASE_USER }}"
+    password: "{{ FEDORA_DATABASE_PASSWORD }}"
+    status_code: 200
+
+- name: Load existing content to Solr
+  uri:
+    url: "http://{{ SOLR_HOSTNAME }}:8080/solr/admin/cores?action=RELOAD&core=collection1"
+    method: GET
+    status_code: 200
+
 
 

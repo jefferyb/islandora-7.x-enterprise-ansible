@@ -1,17 +1,21 @@
+# Islandora & Tuque Versions:
+  ISLANDORA_VERSION: "7.x"
+  TUQUE_VERSION: "1.8"
+
 # MySQL Settings:
   MYSQL_HOSTNAME: "localhost"
   MYSQL_PORT: "3306"
   MYSQL_ROOT_USER: "root"
-  MYSQL_ROOT_PASSWORD: "islandora"
+  MYSQL_ROOT_PASSWORD: "sQYrR4U9NB2gBzXSSe326"
 
   DRUPAL_DATABASE_NAME: "drupal7"
   FEDORA_DATABASE_NAME: "fedora3"
 
   FEDORA_DATABASE_USER: "fedoraAdmin"
-  FEDORA_DATABASE_PASSWORD: "islandora"
+  FEDORA_DATABASE_PASSWORD: "9kNJ4r5ZEbkXjM4EKbupB"
 
   FGSADMIN_USER: fgsAdmin
-  FGSADMIN_PASSWORD: islandora
+  FGSADMIN_PASSWORD: "GrxB9eVF4B9z7c9B5Daa5"
 
 # Tomcat Settings:
   TOMCAT_HOME: "/var/lib/tomcat7"
@@ -21,19 +25,19 @@
 # Fedora Settings:
   FEDORA_HOME: "/usr/local/fedora"
   FEDORA_VERSION: 3.8.1
-  FEDORA_HOSTNAME: "localhost"
+  FEDORA_HOSTNAME: "{{ ansible_fqdn }}"
   # An example of giving an IP access to fedora
   IP_TO_ACCESS_FEDORA:
-      - 192.168.3.17
-      - 192.168.10.4
+      - "{{ ansible_fqdn }}"
+      - "{{ ansible_default_ipv4.address }}"
 
 # Djatoka Settings:
   DJATOKA_HOME: "/usr/local/djatoka"
-  DJATOKA_HOSTNAME: "localhost"
+  DJATOKA_HOSTNAME: "{{ ansible_fqdn }}"
 
 # Apache Settings:
   APACHE_CONFIG_FILE: "/etc/apache2/sites-enabled/000-default.conf"
-  APACHE_SERVER_ALIAS: "{{ ansible_hostname }}"
+  APACHE_SERVER_ALIAS: "{{ ansible_fqdn }}"
   APACHE_PORT: 80
 
 # Drush Settings:
@@ -44,21 +48,19 @@
   DRUPAL_HOME: "/var/www/{{ DRUPAL_PROJECT_RENAME }}"
   DRUPAL_VERSION: 7
 
-  DRUPAL_SITE_NAME: "Islandora Enterprise Stack"
   DRUPAL_SITE_ADMIN: "admin"
   DRUPAL_SITE_ADMIN_PASSWORD: "islandora"
-  DRUPAL_ACCOUNT_MAIL: "admin@example.com"
+  DRUPAL_SITE_NAME: "Islandora Enterprise Stack"
   DRUPAL_SITE_MAIL: "no-reply@example.com"
-
-# Tuque Settings:
-  TUQUE_VERSION: 1.6
+  DRUPAL_ACCOUNT_MAIL: "admin@example.com"
+  DRUPAL_TIMEZONE: "America/Chicago"
 
 # Solr Settings:
   SOLR_VERSION: 4.2.0
   SOLR_HOME: "/usr/local/fedora/solr"
-  SOLR_HOSTNAME: localhost
+  SOLR_HOSTNAME: "{{ ansible_fqdn }}"
 
 # GSearch Settings:
-  GSEARCH_HOSTNAME: localhost
-
+  GSEARCH_VERSION: 2.7
+  GSEARCH_HOSTNAME: "{{ ansible_fqdn }}"
 
