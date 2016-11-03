@@ -338,12 +338,6 @@
     - php_lib
     - islandora_xml_forms
 
-- name: Fix islandora_xml_forms module [ 'schema  _api' -> xml_schema_api ]
-  replace:
-    regexp: 'schema  _api'
-    replace: 'xml_schema_api'
-    dest: "{{ DRUPAL_HOME }}/sites/all/modules/islandora_xml_forms/api/schema/Extension.inc"
-
 - name: "Enable the modules"
   shell: "{{ item }}"
   with_items:
