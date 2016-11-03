@@ -1,6 +1,6 @@
 # Islandora & Tuque Versions:
-  ISLANDORA_VERSION: "7.x-1.5"
-  TUQUE_VERSION: "1.5"
+  ISLANDORA_VERSION: "7.x-1.6"
+  TUQUE_VERSION: "1.6"
 
 # MySQL Settings:
   MYSQL_HOSTNAME: "localhost"
