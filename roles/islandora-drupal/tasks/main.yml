@@ -214,7 +214,7 @@
         regexp: "      'charset'"
         insertafter: "      'password'"
         line: "      'charset' => 'utf8mb4',"
-  when: 
+  when:
     - drupal_install.changed
 
 - name: "Enable proxy module"
@@ -259,9 +259,9 @@
         ProxyPassReverse /fedora/risearch http://{{ FEDORA_HOSTNAME }}:8080/fedora/risearch
         ProxyPass /adore-djatoka http://{{ DJATOKA_HOSTNAME }}:8080/adore-djatoka
         ProxyPassReverse /adore-djatoka http://{{ DJATOKA_HOSTNAME }}:8080/adore-djatoka
-        
+
 - name: Torch the default index.html
-  file: 
+  file:
     path: /var/www/html/index.html
     state: absent
 
@@ -290,7 +290,7 @@
     - tuque
 
 ### milestone 5 - Installing the Islandora Essential Modules
-- name: Install the ImageMagick Drupal module 
+- name: Install the ImageMagick Drupal module
   shell: "{{ item }}"
   with_items:
     - "wget -O /tmp/imagemagick.zip http://ftp.drupal.org/files/projects/imagemagick-7.x-1.0.zip"
@@ -340,6 +340,12 @@
     - islandora_xml_forms
     - islandora_pdfjs
 
+- name: Fix islandora_xml_forms module [ 'schema  _api' -> xml_schema_api ]
+  replace:
+    regexp: 'schema  _api'
+    replace: 'xml_schema_api'
+    dest: "{{ DRUPAL_HOME }}/sites/all/modules/islandora_xml_forms/api/schema/Extension.inc"
+
 - name: "Enable the modules"
   shell: "{{ item }}"
   with_items:
@@ -379,15 +385,15 @@
 
     - name: Configure
       lineinfile:
-        insertafter: 'extension_dir = "ext"' 
+        insertafter: 'extension_dir = "ext"'
         regexp: "extension=uploadprogress.so"
         line: "extension=uploadprogress.so"
-        dest: /etc/php5/apache2/php.ini 
+        dest: /etc/php5/apache2/php.ini
   when: ansible_distribution_release == "trusty"
 
 - block:
     - name: Add uploadprogress Repo
-      apt_repository: 
+      apt_repository:
         repo: 'ppa:ondrej/php'
 
     - name: Install php-uploadprogress
@@ -398,10 +404,10 @@
   when: ansible_distribution_release == "xenial"
 
 - name: Set Permissions
-  file: 
+  file:
     path: "{{ item }}"
-    owner: www-data 
-    group: www-data 
+    owner: www-data
+    group: www-data
     recurse: yes
   with_items:
     - "{{ DRUPAL_HOME }}"
