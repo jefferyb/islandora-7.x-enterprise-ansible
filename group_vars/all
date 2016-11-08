@@ -11,7 +11,13 @@
   DRUPAL_DATABASE_NAME: "drupal7"
   FEDORA_DATABASE_NAME: "fedora3"
 
-  FEDORA_DATABASE_USER: "fedoraAdmin"
+  FEDORA_ADMIN: "fedoraAdmin"
+  FEDORA_ADMIN_PASSWORD: "9kNJ4r5ZEbkXjM4EKbupB"
+
+  FEDORA_BATCH_USER: "fedoraBot"
+  FEDORA_BATCH_PASSWORD: "9kNJ4r5ZEbkXjM4EKbupB"
+
+  FEDORA_DATABASE_USER: "fedoraDB"
   FEDORA_DATABASE_PASSWORD: "9kNJ4r5ZEbkXjM4EKbupB"
 
   FGSADMIN_USER: fgsAdmin
@@ -21,6 +27,7 @@
   TOMCAT_HOME: "/var/lib/tomcat7"
   TOMCAT_USER: "tomcat7"
   JAVA_HOME: "/usr/lib/jvm/java-8-oracle/jre"
+  JAVA_OPT_MEMORY_MAX: "1g"  # was 1024m - setting should be no more than 50% of system memory (or 70)
 
 # Fedora Settings:
   FEDORA_HOME: "/usr/local/fedora"
@@ -63,4 +70,3 @@
 # GSearch Settings:
   GSEARCH_VERSION: 2.7
   GSEARCH_HOSTNAME: "{{ ansible_fqdn }}"
-

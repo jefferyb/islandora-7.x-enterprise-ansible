@@ -1,6 +1,11 @@
 <?xml version='1.0' ?>
   <users>
-    <user name="{{ FEDORA_DATABASE_USER }}" password="{{ FEDORA_DATABASE_PASSWORD }}">
+    <user name="{{ FEDORA_ADMIN_USER }}" password="{{ FEDORA_ADMIN_PASSWORD }}">
+      <attribute name="fedoraRole">
+        <value>administrator</value>
+      </attribute>
+    </user>
+    <user name="{{ FEDORA_BATCH_USER }}" password="{{ FEDORA_BATCH_PASSWORD }}">
       <attribute name="fedoraRole">
         <value>administrator</value>
       </attribute>
