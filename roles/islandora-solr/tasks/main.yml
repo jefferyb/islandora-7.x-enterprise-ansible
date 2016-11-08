@@ -104,8 +104,8 @@
   uri:
     url: "http://{{ GSEARCH_HOSTNAME }}:8080/fedoragsearch/rest?operation=updateIndex&action=fromFoxmlFiles"
     method: GET
-    user: "{{ FEDORA_DATABASE_USER }}"
-    password: "{{ FEDORA_DATABASE_PASSWORD }}"
+    user: "{{ FEDORA_ADMIN_USER }}"
+    password: "{{ FEDORA_ADMIN_PASSWORD }}"
     status_code: 200
 
 - name: Load existing content to Solr
