@@ -32,7 +32,7 @@
     name: mysql
     state: restarted
 - shell: service mysql restart
-  when: 
+  when:
     - ansible_virtualization_type == "docker"
     - ansible_distribution_release == "trusty"
 
@@ -55,30 +55,29 @@
       when: edit_mysql_config.changed
     - shell: service mysql restart
       when: ansible_virtualization_type == "docker"
-  when: 
+  when:
     - ansible_distribution_release == "trusty"
 
-- name: Create database 
+- name: Create database
   mysql_db:
-    name: "{{ FEDORA_DATABASE_NAME }}" 
+    name: "{{ FEDORA_DATABASE_NAME }}"
     state: present
     encoding: utf8
     collation: utf8_bin
     login_password: "{{ MYSQL_ROOT_PASSWORD }}"
 
 - name: Create Fedora database user
-  mysql_user: 
-    name: "{{ FEDORA_DATABASE_USER }}" 
+  mysql_user:
+    name: "{{ FEDORA_DATABASE_USER }}"
     password: "{{ FEDORA_DATABASE_PASSWORD }}"
     priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
     state: present
     login_password: "{{ MYSQL_ROOT_PASSWORD }}"
 
-- name: Create fgsAdmin user
-  mysql_user: 
-    name: "{{ FGSADMIN_USER }}" 
-    password: "{{ FGSADMIN_PASSWORD }}"
-    priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
-    state: present
-    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
-
+# - name: Create fgsAdmin user
+#   mysql_user:
+#     name: "{{ FGSADMIN_USER }}"
+#     password: "{{ FGSADMIN_PASSWORD }}"
+#     priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
+#     state: present
+#     login_password: "{{ MYSQL_ROOT_PASSWORD }}"
