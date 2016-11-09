@@ -422,7 +422,8 @@
     - drush -v pdfjs-plugin
     - drush eval "variable_set('islandora_pdf_viewers', array('name' => array('none' => 'none', 'islandora_pdfjs' => 'islandora_pdfjs'), 'default' => 'islandora_pdfjs'))"
     ### Additional Islandora Modules
-    - drush -y -u 1 en islandora_batch entity_token islandora_batch_report
+    - drush dl entity
+    - drush -y -u 1 en islandora_batch islandora_batch_report
     - drush eval "variable_set('islandora_batch_java', '/usr/bin/java')"
     - drush eval "variable_set('image_toolkit', 'imagemagick')"
     - drush eval "variable_set('imagemagick_convert', '/usr/bin/convert')"
