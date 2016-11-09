@@ -459,7 +459,7 @@
   args:
     executable: /bin/bash
     chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
-  when: islandora_modules.changed or drupal_install.changed
+  # when: islandora_modules.changed or drupal_install.changed
 
 - block:
     - name: Install uploadprogress
