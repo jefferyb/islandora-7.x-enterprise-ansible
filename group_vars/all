@@ -64,3 +64,5 @@
   GSEARCH_VERSION: 2.7
   GSEARCH_HOSTNAME: "{{ ansible_fqdn }}"
 
+# FFMPEG Settings:
+  FFMPEG_VERSION: 1.1.4
