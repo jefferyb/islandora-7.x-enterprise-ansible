@@ -414,9 +414,15 @@
     - drush -y -u 1 en islandora_basic_collection
     - drush -y -u 1 en islandora_basic_image
     - drush -y -u 1 en islandora_pdf
+    - drush eval "variable_set('islandora_basic_collection_display_backend', 'islandora_basic_collection_sparql_query_backend')"
+    - drush eval "variable_set('islandora_pdf_allow_text_upload', '1')"
+    - drush eval "variable_set('islandora_pdf_create_fulltext', '1')"
+    - drush eval "variable_set('islandora_pdf_create_pdfa', '1')"
     ### milestone 6 - Installing Solr and GSearch
     - drush -y -u 1 en islandora_solr islandora_solr_metadata islandora_solr_facet_pages islandora_solr_views islandora_solr_config
     - drush -y -u 1 en xml_form_builder xml_form_elements xml_forms imagemagick_advanced views_ui
+    - drush eval "variable_set('islandora_metadata_display', 'islandora_solr_metadata')"
+    - drush eval "variable_set('islandora_lossless', '1')"
     ### Islandora Viewers
     - drush -y -u 1 en islandora_pdfjs
     - drush -v pdfjs-plugin
