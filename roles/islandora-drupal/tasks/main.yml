@@ -466,6 +466,13 @@
 
   when: INSTALL_COMPLETE_MODULE == "true"
 
+- name: Fix some MySQL problems with the xml_form_builder module under Ubuntu 16 LTS
+  replace:
+    regexp: "'not NULL' => TRUE"
+    replace: "'not null' => True"
+    dest: "{{ DRUPAL_HOME }}/sites/all/modules/islandora_xml_forms/builder/xml_form_builder.install"
+  when: ansible_distribution_release == "xenial"
+
 - name: "Enable the modules"
   shell: "{{ item }}"
   with_items:

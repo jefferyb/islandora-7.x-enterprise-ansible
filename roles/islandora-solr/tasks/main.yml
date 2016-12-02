@@ -82,13 +82,11 @@
     name: apache2
     state: stopped
 
-- name: Kill tomcat 7
+- name: Kill tomcat
   command: pkill java
 
 - name: Start tomcat
-  service:
-    name: "{{ TOMCAT_USER }}"
-    state: started
+  command: /etc/init.d/tomcat7 start
 
 - name: Wait for tomcat
   wait_for:
