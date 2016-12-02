@@ -2,6 +2,11 @@
   ISLANDORA_VERSION: "7.x"
   TUQUE_VERSION: "1.8"
 
+# ENV Settings:
+  USE_INSTALL_COMPLETE_MODULE: "{{ ansible_env.INSTALL_COMPLETE_MODULE | default('false') }}"
+  USE_POSTGRESQL: "{{ ansible_env.USE_POSTGRESQL | default('false') }}"
+  PID_NAME_SPACE: "{{ ansible_env.PID_NAME_SPACE | default('changeme') }}"
+
 # MySQL Settings:
   MYSQL_HOSTNAME: "localhost"
   MYSQL_PORT: "3306"
@@ -10,6 +15,8 @@
 
   DRUPAL_DATABASE_NAME: "drupal7"
   FEDORA_DATABASE_NAME: "fedora3"
+
+  POSTGRESQL_HOSTNAME: "localhost"
 
   FEDORA_ADMIN_USER: "fedoraAdmin"
   FEDORA_ADMIN_PASSWORD: "correcthorsebatterystaple"
@@ -64,9 +71,12 @@
 
 # Solr Settings:
   SOLR_VERSION: 4.2.0
-  SOLR_HOME: "/usr/local/fedora/solr"
+  SOLR_HOME: "/usr/local/solr"
   SOLR_HOSTNAME: "{{ ansible_fqdn }}"
 
 # GSearch Settings:
   GSEARCH_VERSION: 2.7
   GSEARCH_HOSTNAME: "{{ ansible_fqdn }}"
+
+# FFMPEG Settings:
+  FFMPEG_VERSION: 1.1.4

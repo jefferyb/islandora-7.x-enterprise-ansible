@@ -58,26 +58,35 @@
   when:
     - ansible_distribution_release == "trusty"
 
-- name: Create database
-  mysql_db:
-    name: "{{ FEDORA_DATABASE_NAME }}"
-    state: present
-    encoding: utf8
-    collation: utf8_bin
-    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+- block:
+    - name: Create database
+      mysql_db:
+        name: "{{ FEDORA_DATABASE_NAME }}"
+        state: present
+        encoding: utf8
+        collation: utf8_bin
+        login_password: "{{ MYSQL_ROOT_PASSWORD }}"
 
-- name: Create Fedora database user
-  mysql_user:
-    name: "{{ FEDORA_DATABASE_USER }}"
-    password: "{{ FEDORA_DATABASE_PASSWORD }}"
-    priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
-    state: present
-    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+    - name: Create Fedora database user
+      mysql_user:
+        name: "{{ FEDORA_DATABASE_USER }}"
+        password: "{{ FEDORA_DATABASE_PASSWORD }}"
+        priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
+        state: present
+        login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+  when: not USE_POSTGRESQL
 
-# - name: Create fgsAdmin user
-#   mysql_user:
-#     name: "{{ FGSADMIN_USER }}"
-#     password: "{{ FGSADMIN_PASSWORD }}"
-#     priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
-#     state: present
-#     login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+- block:
+    - name: Remove database
+      mysql_db:
+        name: "{{ FEDORA_DATABASE_NAME }}"
+        state: absent
+        login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+
+    - name: Remove Fedora database user
+      mysql_user:
+        name: "{{ FEDORA_DATABASE_USER }}"
+        state: absent
+        login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+  when: USE_POSTGRESQL
+

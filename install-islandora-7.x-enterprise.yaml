@@ -12,6 +12,7 @@
   # become: true
   roles:
     - islandora-mysql
+    - islandora-postgresql
     - islandora-tomcat
     - islandora-fedora
     - islandora-drupal

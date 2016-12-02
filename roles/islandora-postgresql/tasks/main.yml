@@ -1,0 +1,55 @@
+---
+# milestone 1 - Installing PostgreSQL
+# --volume: /var/lib/postgresql/9.6/main
+
+- block:
+    - name: Add PostgreSQL Apt Repository
+      apt_repository:
+        repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+        update_cache: yes
+        validate_certs: yes
+        filename: postgresql.list
+
+    - name: Add PostgreSQL Apt Repository Key
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+        validate_certs: yes
+
+    - name: Install PostgreSQL
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - postgresql
+        - postgresql-contrib
+        - python-psycopg2
+
+    - name: Restart PostgreSQL
+      service:
+        name: postgresql
+        state: restarted
+    - shell: service postgresql restart
+      when: ansible_virtualization_type == "docker"
+
+    - name: Create a user
+      become: yes
+      become_user: postgres
+      become_method: sudo
+      postgresql_user:
+        name: "{{ FEDORA_DATABASE_USER }}"
+        password: "{{ FEDORA_DATABASE_PASSWORD }}"
+        state: present
+
+    - name: Create database
+      become: yes
+      become_user: postgres
+      become_method: sudo
+      postgresql_db:
+        name: "{{ FEDORA_DATABASE_NAME }}"
+        encoding: 'UTF-8'
+        state: present
+        owner: "{{ FEDORA_DATABASE_USER }}"
+
+  when: USE_POSTGRESQL

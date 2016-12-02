@@ -1,0 +1,32 @@
+#Install Options
+keystore.file=included
+ri.enabled=true
+messaging.enabled=true
+apia.auth.required=false
+database.jdbcDriverClass=com.mysql.jdbc.Driver
+upstream.auth.enabled=false
+ssl.available=false
+database.jdbcURL=jdbc\:mysql\://{{ MYSQL_HOSTNAME }}/{{ FEDORA_DATABASE_NAME }}?useUnicode\=true&amp;characterEncoding\=utf8&amp;autoReconnect\=true
+messaging.uri=vm\:(broker\:(tcp\://{{ MYSQL_HOSTNAME }}\:61616))
+database.password={{ FEDORA_DATABASE_PASSWORD }}
+database.mysql.driver=included
+database.username={{ FEDORA_DATABASE_USER }}
+fesl.authz.enabled=false
+deploy.local.services=false
+xacml.enabled=true
+database.mysql.jdbcDriverClass=com.mysql.jdbc.Driver
+tomcat.http.port=8080
+fedora.serverHost={{ FEDORA_HOSTNAME }}
+database=mysql
+database.driver=included
+fedora.serverContext=fedora
+llstore.type=akubra-fs
+tomcat.home={{ TOMCAT_HOME }}
+fesl.authn.enabled=true
+database.mysql.jdbcURL=jdbc\:mysql\://{{ MYSQL_HOSTNAME }}/{{ FEDORA_DATABASE_NAME }}?useUnicode\=true&amp;characterEncoding\=utf8&amp;autoReconnect\=true
+fedora.home={{ FEDORA_HOME }}
+install.type=custom
+servlet.engine=included
+apim.ssl.required=false
+fedora.admin.pass={{ FEDORA_DATABASE_PASSWORD }}
+apia.ssl.required=false

@@ -1,6 +1,6 @@
 galaxy_info:
   author: Jeffery Bagirimvano
-  description: Role to install and configure Fedora for Islandora
+  description: Role to install and configure PostgreSQL database for Islandora
   company: University of Arkansas
 
   # If the issue tracker for your role is not on github, uncomment the
@@ -194,7 +194,7 @@ galaxy_info:
     # NOTE: A tag is limited to a single word comprised of
     # alphanumeric characters. Maximum 20 tags per role.
 
-dependencies:
-  - islandora-mysql
-  - islandora-postgresql
-  - islandora-tomcat
+dependencies: []
+  # List your role dependencies here, one per line.
+  # Be sure to remove the '[]' above if you add dependencies
+  # to this list.
