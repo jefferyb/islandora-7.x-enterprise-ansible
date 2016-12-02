@@ -22,17 +22,17 @@
 
 - name: Create an "install.properties" file | MySQL
   template:
-    src: install.properties.mysql.j2
+    src: install.properties.mysql.j2 
     dest: /tmp/install.properties
-  when: not USE_POSTGRESQL
-  register: install_properties
+  when: USE_POSTGRESQL == "false"
+  register: install_mysql_properties
 
 - name: Create an "install.properties" file | PostgreSQL
   template:
-    src: install.properties.postgresql.j2
+    src: install.properties.postgresql.j2 
     dest: /tmp/install.properties
-  when: USE_POSTGRESQL
-  register: install_properties
+  when: USE_POSTGRESQL == "true"
+  register: install_postgres_properties
 
 - name: Install Fedora
   shell: "{{ item }}"
@@ -40,7 +40,7 @@
     - "echo 'yes' | java -jar /tmp/fcrepo-installer-{{ FEDORA_VERSION }}.jar /tmp/install.properties"
   args:
     chdir: /tmp/
-  when: install_properties.changed
+  when: install_mysql_properties.changed or install_postgres_properties.changed
 
 - name: Set namespace id for pids
   replace:
@@ -62,12 +62,12 @@
   service:
     name: "{{ TOMCAT_USER }}"
     state: restarted
-  when: install_properties.changed
+  when: install_mysql_properties.changed or install_postgres_properties.changed
 
 - name: Wait for tomcat
   wait_for:
     path: "{{ FEDORA_HOME }}/data/fedora-xacml-policies/repository-policies/default/deny-apim-if-not-localhost.xml"
-  when: install_properties.changed
+  when: install_mysql_properties.changed or install_postgres_properties.changed
 
 - name: Download / Clone the Islandora specific XACML policies
   git:

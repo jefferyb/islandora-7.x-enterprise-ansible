@@ -52,4 +52,4 @@
         state: present
         owner: "{{ FEDORA_DATABASE_USER }}"
 
-  when: USE_POSTGRESQL
+  when: USE_POSTGRESQL == "true"

@@ -113,4 +113,3 @@
     url: "http://{{ SOLR_HOSTNAME }}:8080/solr/admin/cores?action=RELOAD&core=collection1"
     method: GET
     status_code: 200
-    

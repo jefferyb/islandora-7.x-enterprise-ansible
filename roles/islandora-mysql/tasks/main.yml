@@ -74,7 +74,7 @@
         priv: "{{ FEDORA_DATABASE_NAME }}.*:ALL,GRANT"
         state: present
         login_password: "{{ MYSQL_ROOT_PASSWORD }}"
-  when: not USE_POSTGRESQL
+  when: USE_POSTGRESQL == "false"
 
 - block:
     - name: Remove database
@@ -88,5 +88,5 @@
         name: "{{ FEDORA_DATABASE_USER }}"
         state: absent
         login_password: "{{ MYSQL_ROOT_PASSWORD }}"
-  when: USE_POSTGRESQL
+  when: USE_POSTGRESQL == "true"
 

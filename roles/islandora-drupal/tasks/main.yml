@@ -138,6 +138,7 @@
     - imagemagick
     - poppler-utils
     - ghostscript
+    - sendmail
 
 - name: Download Drupal
   shell: "drush dl -y drupal-{{ DRUPAL_VERSION }} --drupal-project-rename={{ DRUPAL_PROJECT_RENAME }}"
@@ -311,79 +312,14 @@
     chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
     creates: "{{ DRUPAL_HOME }}/sites/all/modules/imagemagick/imagemagick.module"
 
-- name: Install the Openseadragon library
-  shell: "{{ item }}"
-  with_items:
-    - "wget -O /tmp/openseadragon-bin-0.9.129.zip http://openseadragon.github.io/releases/openseadragon-bin-0.9.129.zip"
-    - "unzip /tmp/openseadragon-bin-0.9.129.zip"
-    - "mv openseadragon-bin-0.9.129 openseadragon"
-  args:
-    executable: /bin/bash
-    chdir: "{{ DRUPAL_HOME }}/sites/all/libraries"
-    creates: "{{ DRUPAL_HOME }}/sites/all/libraries/openseadragon/openseadragon.js"
-
-- name: Install FFmpeg
-  shell: "{{ item }}"
-  with_items:
-    - echo "deb http://us.archive.ubuntu.com/ubuntu trusty main multiverse" >> /etc/apt/sources.list && apt-get update && apt-get install libfaac-dev -y
-    - apt-get install -y autoconf automake build-essential libass-dev libfreetype6-dev libgpac-dev libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libx11-dev libxext-dev libxfixes-dev pkg-config texi2html zlib1g-dev yasm libx264-dev libmp3lame-dev unzip x264 libgsm1-dev libopencore-amrnb-dev libopencore-amrwb-dev libopenjpeg-dev libschroedinger-dev libspeex-dev libvpx-dev libxvidcore-dev libdc1394-22-dev
-    - wget -q -O "/tmp/ffmpeg-{{ FFMPEG_VERSION }}.tar.gz" "http://www.ffmpeg.org/releases/ffmpeg-{{ FFMPEG_VERSION }}.tar.gz"
-    - tar -xzvf "/tmp/ffmpeg-{{ FFMPEG_VERSION }}.tar.gz"
-    - cd "ffmpeg-{{ FFMPEG_VERSION }}" && ./configure --enable-gpl --enable-version3 --enable-nonfree --enable-postproc --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libdc1394 --enable-libfaac --enable-libgsm --enable-libmp3lame --enable-libopenjpeg --enable-libschroedinger --enable-libspeex --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libxvid && make && make install && ldconfig
-  args:
-    executable: /bin/bash
-    chdir: "/tmp"
-    creates: "/usr/local/bin/ffmpeg"
-
-- name: Install ffmpeg2theora
-  apt:
-    pkg: "{{ item }}"
-    state: present
-    update_cache: true
-    cache_valid_time: 86400
-  with_items:
-    - ffmpeg2theora
-
-- name: Install Tesseract
-  apt:
-    pkg: "{{ item }}"
-    state: present
-    update_cache: true
-    cache_valid_time: 86400
-  with_items:
-    - tesseract-ocr
-    - tesseract-ocr-eng
-    - tesseract-ocr-fra
-
-- name: Download the modules
+- name: Download the minimal modules
   git:
     repo: "https://github.com/Islandora/{{ item }}"
     dest: "{{ DRUPAL_HOME }}/sites/all/modules/{{ item }}"
     version: "{{ ISLANDORA_VERSION }}"
     update: no
   with_items:
-    - islandora
-    - islandora_solution_pack_collection
-    - islandora_solution_pack_image
-    - islandora_solution_pack_pdf
-    - islandora_solr_facet_pages
-    - islandora_solr_metadata
-    - islandora_solr_search
-    - islandora_solr_views
-    - objective_forms
-    - php_lib
-    - islandora_xml_forms
-    - islandora_pdfjs
-    - islandora_batch
-    - islandora_solution_pack_large_image
-    - islandora_paged_content
-    - islandora_openseadragon
-    - islandora_ocr
-    - islandora_internet_archive_bookreader
-    - islandora_solution_pack_book
-    - islandora_videojs
-    - islandora_solution_pack_audio
-    - islandora_solution_pack_video
+    - "{{ MINIMAL_MODULES }}"
   register: islandora_modules
 
 - name: Set git filemode false for git
@@ -392,34 +328,153 @@
     replace: "filemode = false"
     dest: "{{ DRUPAL_HOME }}/sites/all/modules/{{ item }}/.git/config"
   with_items:
-    - islandora
-    - islandora_solution_pack_collection
-    - islandora_solution_pack_image
-    - islandora_solution_pack_pdf
-    - islandora_solr_facet_pages
-    - islandora_solr_metadata
-    - islandora_solr_search
-    - islandora_solr_views
-    - objective_forms
-    - php_lib
-    - islandora_xml_forms
-    - islandora_pdfjs
-    - islandora_batch
-    - islandora_solution_pack_large_image
-    - islandora_paged_content
-    - islandora_openseadragon
-    - islandora_ocr
-    - islandora_internet_archive_bookreader
-    - islandora_solution_pack_book
-    - islandora_videojs
-    - islandora_solution_pack_audio
-    - islandora_solution_pack_video
+    - "{{ MINIMAL_MODULES }}"
+
+### All Islandora Foundation modules
+- block:
+    ### Install FITS
+    - name: Create {{ FITS_HOME }} folder
+      file:
+        path: "{{ FITS_HOME }}"
+        state: directory
+
+    - name: "Download FITS"
+      get_url:
+        url: "http://projects.iq.harvard.edu/files/fits/files/fits-{{ FITS_VERSION }}.zip"
+        dest: "/tmp/fits-{{ FITS_VERSION }}.zip"
+        timeout: 120
+
+    - name: Unzip FITS
+      unarchive:
+        src: "/tmp/fits-{{ FITS_VERSION }}.zip"
+        dest: "{{ FITS_HOME }}"
+        creates: "{{ FITS_HOME }}/fits-{{ FITS_VERSION }}/fits.sh"
+
+    - name: "Setting some permissions"
+      file:
+        path: "{{ FITS_HOME }}/fits-{{ FITS_VERSION }}/{{ item }}"
+        mode: "u=rwx,g=rx,o=rx"
+      with_items:
+        - fits.sh
+        - fits-env.sh
+
+    - name: Install the Openseadragon library
+      shell: "{{ item }}"
+      with_items:
+        - "wget -O /tmp/openseadragon-bin-0.9.129.zip http://openseadragon.github.io/releases/openseadragon-bin-0.9.129.zip"
+        - "unzip /tmp/openseadragon-bin-0.9.129.zip"
+        - "mv openseadragon-bin-0.9.129 openseadragon"
+      args:
+        executable: /bin/bash
+        chdir: "{{ DRUPAL_HOME }}/sites/all/libraries"
+        creates: "{{ DRUPAL_HOME }}/sites/all/libraries/openseadragon/openseadragon.js"
+
+    - name: Install FFmpeg
+      shell: "{{ item }}"
+      with_items:
+        - echo "deb http://us.archive.ubuntu.com/ubuntu trusty main multiverse" >> /etc/apt/sources.list && apt-get update && apt-get install libfaac-dev -y
+        - apt-get install -y autoconf automake build-essential libass-dev libfreetype6-dev libgpac-dev libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libx11-dev libxext-dev libxfixes-dev pkg-config texi2html zlib1g-dev yasm libx264-dev libmp3lame-dev unzip x264 libgsm1-dev libopencore-amrnb-dev libopencore-amrwb-dev libopenjpeg-dev libschroedinger-dev libspeex-dev libvpx-dev libxvidcore-dev libdc1394-22-dev
+        - wget -q -O "/tmp/ffmpeg-{{ FFMPEG_VERSION }}.tar.gz" "http://www.ffmpeg.org/releases/ffmpeg-{{ FFMPEG_VERSION }}.tar.gz"
+        - tar -xzvf "/tmp/ffmpeg-{{ FFMPEG_VERSION }}.tar.gz"
+        - cd "ffmpeg-{{ FFMPEG_VERSION }}" && ./configure --enable-gpl --enable-version3 --enable-nonfree --enable-postproc --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libdc1394 --enable-libfaac --enable-libgsm --enable-libmp3lame --enable-libopenjpeg --enable-libschroedinger --enable-libspeex --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libxvid && make && make install && ldconfig
+      args:
+        executable: /bin/bash
+        chdir: "/tmp"
+        creates: "/usr/local/bin/ffmpeg"
+
+    - name: Install Sleuthkit
+      shell: "{{ item }}"
+      with_items:
+        - apt-get install -y libafflib-dev afflib-tools libewf-dev ewf-tools
+        - git clone https://github.com/sleuthkit/sleuthkit.git
+        - cd sleuthkit && git checkout 5f8a005475c3ea3e6547c3276aea381e9804c005 && ./bootstrap && ./configure && make && make install && ldconfig
+      args:
+        executable: /bin/bash
+        chdir: "/tmp"
+        creates: "/usr/local/bin/fiwalk"
+
+    - name: Install warctools
+      shell: "{{ item }}"
+      with_items:
+        - apt-get install -y python-setuptools python-unittest2
+        - git clone https://github.com/internetarchive/warctools.git
+        - cd warctools && ./setup.py build && ./setup.py install
+      args:
+        executable: /bin/bash
+        chdir: "/tmp"
+        creates: "/usr/local/bin/warcfilter"
+
+    - name: Install ffmpeg2theora
+      apt:
+        pkg: "{{ item }}"
+        state: present
+        update_cache: true
+        cache_valid_time: 86400
+      with_items:
+        - ffmpeg2theora
+
+    - name: Install Tesseract
+      apt:
+        pkg: "{{ item }}"
+        state: present
+        update_cache: true
+        cache_valid_time: 86400
+      with_items:
+        - tesseract-ocr
+        - tesseract-ocr-eng
+        - tesseract-ocr-fra
+
+    # Download the modules
+    - name: Download more modules
+      git:
+        repo: "https://github.com/Islandora/{{ item }}"
+        dest: "{{ DRUPAL_HOME }}/sites/all/modules/{{ item }}"
+        version: "{{ ISLANDORA_VERSION }}"
+        update: no
+      with_items:
+      - "{{ COMPLETE_MODULES }}"
+
+    - name: Set git filemode false for git
+      replace:
+        regexp: "filemode = true"
+        replace: "filemode = false"
+        dest: "{{ DRUPAL_HOME }}/sites/all/modules/{{ item }}/.git/config"
+      with_items:
+        - "{{ COMPLETE_MODULES }}"
+
+    # Download the libraries
+    - name: Download Cite-Proc
+      git:
+        repo: "https://github.com/Islandora/citeproc-php"
+        dest: "{{ DRUPAL_HOME }}/sites/all/libraries/citeproc-php"
+        update: no
+
+    - name: Download BagItPHP
+      git:
+        repo: "https://github.com/scholarslab/BagItPHP"
+        dest: "{{ DRUPAL_HOME }}/sites/all/libraries/BagItPHP"
+        update: no
+
+    - name: Set git filemode false for git
+      replace:
+        regexp: "filemode = true"
+        replace: "filemode = false"
+        dest: "{{ DRUPAL_HOME }}/sites/all/libraries/{{ item }}/.git/config"
+      with_items:
+        - BagItPHP
+        - citeproc-php
+
+  when: INSTALL_COMPLETE_MODULE == "true"
 
 - name: "Enable the modules"
   shell: "{{ item }}"
   with_items:
     ### Enable Testing module to run some of the Islandora tests
     - drush -y -u 1 en simpletest
+    - drush dl devel imagemagick ctools jquery_update pathauto xmlsitemap views variable token libraries datepicker date
+    - drush -y en devel imagemagick ctools jquery_update pathauto xmlsitemap views variable token libraries datepicker_views
+    - drush dl coder
+    - drush -y en coder
     ### milestone 5 - Installing the Islandora Essential Modules
     - drush -y -u 1 en islandora
     - drush -y -u 1 en islandora_basic_collection
@@ -438,31 +493,6 @@
     - drush -y -u 1 en islandora_pdfjs
     - drush -v pdfjs-plugin
     - drush eval "variable_set('islandora_pdf_viewers', array('name' => array('none' => 'none', 'islandora_pdfjs' => 'islandora_pdfjs'), 'default' => 'islandora_pdfjs'))"
-    ### Additional Islandora Modules
-    - drush dl entity
-    - drush -y -u 1 en islandora_batch islandora_batch_report
-    - drush eval "variable_set('islandora_batch_java', '/usr/bin/java')"
-    - drush eval "variable_set('image_toolkit', 'imagemagick')"
-    - drush eval "variable_set('imagemagick_convert', '/usr/bin/convert')"
-    - drush -y -u 1 en islandora_large_image
-    - drush eval "variable_set('islandora_use_kakadu', TRUE)"
-    - drush -y -u 1 en islandora_paged_content
-    - drush -y -u 1 en islandora_openseadragon
-    - drush eval "variable_set('islandora_large_image_viewers', array('name' => array('none' => 'none', 'islandora_openseadragon' => 'islandora_openseadragon'), 'default' => 'islandora_openseadragon'))"
-    - drush -y -u 1 en islandora_ocr
-    - drush -y -u 1 en colorbox
-    - drush colorbox-plugin
-    - drush -y -u 1 en islandora_internet_archive_bookreader
-    - drush -y -u 1 en islandora_book
-    - drush eval "variable_set('islandora_book_viewers', array('name' => array('none' => 'none', 'islandora_internet_archive_bookreader' => 'islandora_internet_archive_bookreader'), 'default' => 'islandora_internet_archive_bookreader'))"
-    - drush eval "variable_set('islandora_book_page_viewers', array('name' => array('none' => 'none', 'islandora_openseadragon' => 'islandora_openseadragon'), 'default' => 'islandora_openseadragon'))"
-    - drush -y -u 1 en islandora_videojs
-    - drush -v videojs-plugin
-    - drush -y -u 1 en islandora_audio
-    - drush eval "variable_set('islandora_audio_viewers', array('name' => array('none' => 'none', 'islandora_videojs' => 'islandora_videojs'), 'default' => 'islandora_videojs'))"
-    - drush -y -u 1 en islandora_video
-    - drush eval "variable_set('islandora_video_viewers', array('name' => array('none' => 'none', 'islandora_videojs' => 'islandora_videojs'), 'default' => 'islandora_videojs'))"
-    - drush eval "variable_set('islandora_video_ffmpeg_path', '/usr/local/bin/ffmpeg')"
     ### drush_extras to configure blocks
     ### http://drupal.stackexchange.com/a/3661
     - drush dl drush_extras-7
@@ -477,6 +507,73 @@
     executable: /bin/bash
     chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
   # when: islandora_modules.changed or drupal_install.changed
+
+### All Islandora Foundation modules
+- block:
+    - name: "Enable the modules"
+      shell: "{{ item }}"
+      with_items:
+        ### Installing all Islandora Foundation modules
+        - drush dl -y entity
+        - drush -y -u 1 en islandora_batch islandora_batch_report
+        - drush eval "variable_set('islandora_batch_java', '/usr/bin/java')"
+        - drush eval "variable_set('image_toolkit', 'imagemagick')"
+        - drush eval "variable_set('imagemagick_convert', '/usr/bin/convert')"
+        - drush -y -u 1 en islandora_large_image
+        - drush eval "variable_set('islandora_use_kakadu', TRUE)"
+        - drush -y -u 1 en islandora_paged_content
+        - drush -y -u 1 en islandora_openseadragon
+        - drush eval "variable_set('islandora_large_image_viewers', array('name' => array('none' => 'none', 'islandora_openseadragon' => 'islandora_openseadragon'), 'default' => 'islandora_openseadragon'))"
+        - drush -y -u 1 en islandora_ocr
+        - drush -y -u 1 en colorbox
+        - drush colorbox-plugin
+        - drush -y -u 1 en islandora_internet_archive_bookreader
+        - drush -y -u 1 en islandora_book
+        - drush eval "variable_set('islandora_book_viewers', array('name' => array('none' => 'none', 'islandora_internet_archive_bookreader' => 'islandora_internet_archive_bookreader'), 'default' => 'islandora_internet_archive_bookreader'))"
+        - drush eval "variable_set('islandora_book_page_viewers', array('name' => array('none' => 'none', 'islandora_openseadragon' => 'islandora_openseadragon'), 'default' => 'islandora_openseadragon'))"
+        - drush -y -u 1 en islandora_videojs
+        - drush -v videojs-plugin
+        - drush -y -u 1 en islandora_audio
+        - drush eval "variable_set('islandora_audio_viewers', array('name' => array('none' => 'none', 'islandora_videojs' => 'islandora_videojs'), 'default' => 'islandora_videojs'))"
+        - drush -y -u 1 en islandora_video
+        - drush eval "variable_set('islandora_video_viewers', array('name' => array('none' => 'none', 'islandora_videojs' => 'islandora_videojs'), 'default' => 'islandora_videojs'))"
+        - drush eval "variable_set('islandora_video_ffmpeg_path', '/usr/local/bin/ffmpeg')"
+        - drush -y -u 1 en islandora_compound_object islandora_disk_image islandora_entities islandora_entities_csv_import islandora_newspaper islandora_web_archive
+        - drush -y -u 1 en islandora_premis islandora_checksum islandora_checksum_checker
+        - drush -y -u 1 en islandora_book_batch islandora_pathauto
+        - drush dl -y jquery_update
+        - drush -y -u 1 en jquery_update zip_importer islandora_bibliography islandora_compound_object islandora_google_scholar islandora_scholar_embargo citation_exporter doi_importer endnotexml_importer pmid_importer ris_importer
+        - drush dl -y xmlsitemap datepicker date views_data_export
+        - drush -y -u 1 en islandora_fits islandora_oai islandora_marcxml islandora_simple_workflow islandora_xacml_api islandora_xacml_editor islandora_bagit islandora_usage_stats islandora_form_fieldpanel islandora_altmetrics islandora_populator islandora_newspaper_batch
+        ### Currently, islandora_xmlsitemap is causing some issue, so commenting it out for now...
+        # - islandora_xmlsitemap
+        ### Set variables for Islandora modules
+        - drush eval "variable_set('islandora_audio_viewers', array('name' => array('none' => 'none', 'islandora_videojs' => 'islandora_videojs'), 'default' => 'islandora_videojs'))"
+        - drush eval "variable_set('islandora_fits_executable_path', '{{ FITS_HOME }}/fits-{{ FITS_VERSION }}/fits.sh')"
+        - drush eval "variable_set('islandora_lame_url', '/usr/bin/lame')"
+        - drush eval "variable_set('islandora_video_viewers', array('name' => array('none' => 'none', 'islandora_videojs' => 'islandora_videojs'), 'default' => 'islandora_videojs'))"
+        - drush eval "variable_set('islandora_video_ffmpeg_path', '/usr/local/bin/ffmpeg')"
+        - drush eval "variable_set('islandora_book_viewers', array('name' => array('none' => 'none', 'islandora_internet_archive_bookreader' => 'islandora_internet_archive_bookreader'), 'default' => 'islandora_internet_archive_bookreader'))"
+        - drush eval "variable_set('islandora_book_page_viewers', array('name' => array('none' => 'none', 'islandora_openseadragon' => 'islandora_openseadragon'), 'default' => 'islandora_openseadragon'))"
+        - drush eval "variable_set('islandora_large_image_viewers', array('name' => array('none' => 'none', 'islandora_openseadragon' => 'islandora_openseadragon'), 'default' => 'islandora_openseadragon'))"
+        - drush eval "variable_set('islandora_use_kakadu', TRUE)"
+        - drush eval "variable_set('islandora_newspaper_issue_viewers', array('name' => array('none' => 'none', 'islandora_internet_archive_bookreader' => 'islandora_internet_archive_bookreader'), 'default' => 'islandora_internet_archive_bookreader'))"
+        - drush eval "variable_set('islandora_newspaper_page_viewers', array('name' => array('none' => 'none', 'islandora_openseadragon' => 'islandora_openseadragon'), 'default' => 'islandora_openseadragon'))"
+        - drush eval "variable_set('islandora_checksum_enable_checksum', TRUE)"
+        - drush eval "variable_set('islandora_checksum_checksum_type', 'SHA-1')"
+        - drush eval "variable_set('islandora_ocr_tesseract', '/usr/bin/tesseract')"
+        - drush eval "variable_set('islandora_batch_java', '/usr/bin/java')"
+        - drush eval "variable_set('image_toolkit', 'imagemagick')"
+        - drush eval "variable_set('imagemagick_convert', '/usr/bin/convert')"
+        ### Installing all Islandora Foundation module's required libraries
+        - drush cache-clear drush
+        - drush iabookreader-plugin
+        - drush -y updatedb
+        - drush -y core-cron
+      args:
+        executable: /bin/bash
+        chdir: "{{ DRUPAL_HOME }}/sites/all/modules"
+  when: INSTALL_COMPLETE_MODULE == "true"
 
 - block:
     - name: Install uploadprogress
