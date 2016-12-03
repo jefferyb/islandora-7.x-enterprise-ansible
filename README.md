@@ -13,8 +13,14 @@ git clone https://github.com/jefferyb/islandora-7.x-enterprise-ansible.git
 cd islandora-7.x-enterprise-ansible
 ansible-playbook install-islandora-7.x-enterprise.yaml
 ```
+# Settings
 
 If you want to switch some settings, edit `islandora-7.x-enterprise-ansible/group_vars/all`
+
+- To install the Islandora Complete Modules, set `INSTALL_COMPLETE_MODULE: true` in `islandora-7.x-enterprise-ansible/group_vars/all`
+- To use PostgreSQL as the database for Fedora, then set `USE_POSTGRESQL: true`
+
+Check `islandora-7.x-enterprise-ansible/group_vars/all` for more...
 
 # Contributing
 
