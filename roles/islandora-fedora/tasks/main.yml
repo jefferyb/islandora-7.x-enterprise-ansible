@@ -102,6 +102,7 @@
   get_url:
     url: "http://downloads.sourceforge.net/project/djatoka/djatoka/1.1/adore-djatoka-1.1.tar.gz"
     dest: /tmp/adore-djatoka-1.1.tar.gz
+    validate_certs: no
     timeout: 120
 
 - name: Untar Djatoka
