@@ -3,6 +3,7 @@
 - name: "Download GSearch {{ GSEARCH_VERSION }}"
   get_url:
     url: "https://sourceforge.net/projects/fedora-commons/files/services/3.7/fedoragsearch-{{ GSEARCH_VERSION }}.zip/download"
+    url: "https://drive.uservice.uark.edu/index.php/s/pLDWq5p4M8YxrJC/download"
     dest: "/tmp/fedoragsearch-{{ GSEARCH_VERSION }}.zip"
     timeout: 120
   register: fedoragsearch
